@@ -1,0 +1,18 @@
+# Exact runtime set for the exploratory demo (demo/infer_partial_ecg.py), read from the project's .venv on 2026-10-26
+# with `python -m pip list --format=freeze`. Python 3.12.10, Windows 11. These equal the environment recorded in
+# artifacts/locks/threshold_lock_v0_2.json (numpy, scipy, scikit-learn, pandas, joblib), which the bitwise 9b
+# reproduction depends on.
+#
+# Why this file exists: the root requirements.txt does not pin joblib, but it is part of the protected code-tree hash, so
+# it is left unchanged (see the stage 10 record). Install PyTorch from its own index first:
+#   .\.venv\Scripts\python.exe -m pip install -r requirements-gpu.txt
+#   .\.venv\Scripts\python.exe -m pip install -r demo\requirements-demo.txt
+numpy==2.4.4
+pandas==3.0.2
+scipy==1.18.1
+scikit-learn==1.9.0
+joblib==1.6.0
+threadpoolctl==3.7.0
+PyYAML==6.0.3
+wfdb==4.3.1
+# torch==2.11.0+cu128 (from https://download.pytorch.org/whl/cu128, via requirements-gpu.txt)

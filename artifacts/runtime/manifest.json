@@ -1,0 +1,239 @@
+{
+ "name": "C0 runtime artifacts (frozen; inference only)",
+ "created_utc": "2026-10-28T05:52:41+00:00",
+ "pipeline": "observed leads + mask -> G1/G2 features -> Gate B -> Platt (9a) -> locked t (9b) -> ACCEPT/ABSTAIN; L2G G v0.1 only after ACCEPT, with exact copy-through and the release check",
+ "how_to_verify": "python tools/verify_runtime_artifacts.py [--load]",
+ "not_included": {
+  "E1 classifier": "offline target generation and evaluation only; never on the runtime path",
+  "L2G v0.2-exp": "exploratory, development data only; not part of the app",
+  "PTB-XL / CPSC data, D1 tables, features, fold-10 outputs, authorisation records": "never distributed"
+ },
+ "load_verified_with": "Python 3.12.10, torch 2.11.0+cu128, scikit-learn 1.9.0, joblib 1.6.0 (CPU load, zero-input forward pass in inference mode for the generator)",
+ "artifacts": [
+  {
+   "path": "artifacts/runs/l2g_v0_1_run02/best.pt",
+   "role": "reconstructor",
+   "component": "G v0.1: L2G-ECG-based ECGen generator, run l2g_v0_1_run02, best checkpoint (frozen, decision D-024)",
+   "bytes": 64019691,
+   "sha256": "d515875a7783be5a54934001e13b182ff4f75a5e35554f0e9590d5a1c602bb3b",
+   "expected_input": "ECGen(in_channels=24): float32 (batch, 24, 2048) = 12 leads at 250 Hz, per-lead min-max to [0, 1], missing leads zeroed, plus 12 lead-mask channels; output (batch, 12, 2048); observed samples copied through exactly",
+   "dependencies": "torch 2.11.0; src/models/l2g.py; src/eval/generate_d1.py (inference_mode, eval mode required)",
+   "provenance": "trained on PTB-XL role A_fit (folds 1-8), early stopping on C_dev; 50 epochs",
+   "load_verification": {
+    "status": "LOADED",
+    "type": "ECGen",
+    "checkpoint_keys": [
+     "epoch",
+     "frozen_manifest_sha256",
+     "generator",
+     "opt_d",
+     "opt_g",
+     "protocol_sha256",
+     "run_name",
+     "sched_d",
+     "validation",
+     "vttd"
+    ],
+    "parameters": 7980076,
+    "eval_mode": true,
+    "forward_output_shape": [
+     1,
+     12,
+     2048
+    ]
+   }
+  },
+  {
+   "path": "artifacts/gate/v0_2/m4b1/01_fit/models/gate_B.joblib",
+   "role": "gate (used for the decision)",
+   "component": "Gate B: RandomForestClassifier, 500 trees, fitted on role B_gate (stage M4b-1/01)",
+   "bytes": 9659785,
+   "sha256": "7b863410bd34321adb6cec972a2264eae4e897e522358a54a3d4c2ebafac5a5d",
+   "expected_input": "30 features in pre-registered order: G1 mask geometry (15) + G2 observed-lead quality (15) from src/gate/features.py",
+   "dependencies": "scikit-learn 1.9.0, joblib 1.6.0",
+   "provenance": "PTB-XL role B_gate (folds 1-8), patient-grouped CV",
+   "load_verification": {
+    "status": "LOADED",
+    "type": "RandomForestClassifier",
+    "n_features_in": 30,
+    "n_estimators": 500
+   }
+  },
+  {
+   "path": "artifacts/gate/v0_2/m4b1/01_fit/models/gate_A.joblib",
+   "role": "comparator model (loaded, not used for the decision)",
+   "component": "Gate A: RandomForestClassifier on G1 only (stage M4b-1/01)",
+   "bytes": 3421113,
+   "sha256": "7a007c2bee64289bb9741b7b141ac53d6acef498df03cb9aa32c8a182dc324fb",
+   "expected_input": "15 G1 features",
+   "dependencies": "scikit-learn 1.9.0, joblib 1.6.0",
+   "provenance": "loaded and hash-checked by src/gate/m4b1.load_models, which loads every fitted method",
+   "load_verification": {
+    "status": "LOADED",
+    "type": "RandomForestClassifier",
+    "n_features_in": 15,
+    "n_estimators": 500
+   }
+  },
+  {
+   "path": "artifacts/gate/v0_2/m4b1/01_fit/models/M3_signal_quality_only.joblib",
+   "role": "comparator model (loaded, not used for the decision)",
+   "component": "M3: RandomForestClassifier on G2 only (stage M4b-1/01)",
+   "bytes": 9440681,
+   "sha256": "0b9be4420127057466f2b1d24bc4dbd172a0d8cd93fcdd56df565881e6e47ce6",
+   "expected_input": "15 G2 features",
+   "dependencies": "scikit-learn 1.9.0, joblib 1.6.0",
+   "provenance": "loaded and hash-checked by load_models",
+   "load_verification": {
+    "status": "LOADED",
+    "type": "RandomForestClassifier",
+    "n_features_in": 15,
+    "n_estimators": 500
+   }
+  },
+  {
+   "path": "artifacts/gate/v0_2/m4b1/01_fit/summary.json",
+   "role": "fit record",
+   "component": "stage M4b-1/01 summary: model paths and SHA-256 values checked at load",
+   "bytes": 11281,
+   "sha256": "46a7b65d38459d11c2a536b4a53940911f2a75f91bcca467d8e2cafad11c1200",
+   "expected_input": "JSON",
+   "dependencies": "-",
+   "provenance": "stage 01 output",
+   "load_verification": {
+    "status": "READ",
+    "type": "json"
+   }
+  },
+  {
+   "path": "artifacts/gate/v0_2/m4b1/02_calibration/calibrator_gate_B.joblib",
+   "role": "calibrator (used for the decision)",
+   "component": "Platt scaling (LogisticRegression) for Gate B, fitted on role 9a",
+   "bytes": 863,
+   "sha256": "341ba86a3e2b58c287524ad95ab57a2e535be694e4e9018f987e685c177b45ca",
+   "expected_input": "z = logit(clip(raw RF score, 1e-6, 1 - 1e-6)), shape (n, 1); output calibrated D1 risk",
+   "dependencies": "scikit-learn 1.9.0, joblib 1.6.0",
+   "provenance": "PTB-XL role 9a_calibration (fold 9)",
+   "load_verification": {
+    "status": "LOADED",
+    "type": "LogisticRegression",
+    "n_features_in": 1
+   }
+  },
+  {
+   "path": "artifacts/gate/v0_2/m4b1/02_calibration/calibrator_gate_A.joblib",
+   "role": "calibrator (loaded, not used)",
+   "component": "Platt scaling for Gate A (9a)",
+   "bytes": 863,
+   "sha256": "578dde3a706741ea87b0fda3f3ab005b0702c1d4c2c5d36d26c8eff499a38750",
+   "expected_input": "(n, 1)",
+   "dependencies": "scikit-learn 1.9.0",
+   "provenance": "loaded by load_calibrators",
+   "load_verification": {
+    "status": "LOADED",
+    "type": "LogisticRegression",
+    "n_features_in": 1
+   }
+  },
+  {
+   "path": "artifacts/gate/v0_2/m4b1/02_calibration/calibrator_M3_signal_quality_only.joblib",
+   "role": "calibrator (loaded, not used)",
+   "component": "Platt scaling for M3 (9a)",
+   "bytes": 863,
+   "sha256": "4e3f54b939c71e21de96fa4f80d1c7fa31b405aecb11a3700b796b411b60ef35",
+   "expected_input": "(n, 1)",
+   "dependencies": "scikit-learn 1.9.0",
+   "provenance": "loaded by load_calibrators",
+   "load_verification": {
+    "status": "LOADED",
+    "type": "LogisticRegression",
+    "n_features_in": 1
+   }
+  },
+  {
+   "path": "artifacts/gate/v0_2/m4b1/02_calibration/calibrator_M2_uncertainty_only.joblib",
+   "role": "calibrator (loaded, not used)",
+   "component": "Platt scaling for M2 (E1 margin comparator, 9a); M2 itself needs E1 and is not in the app",
+   "bytes": 863,
+   "sha256": "7f17da1bbef97304ede584af52365fdc6a5427f0ddd06ef7e68a5687df8fbeb1",
+   "expected_input": "(n, 1)",
+   "dependencies": "scikit-learn 1.9.0",
+   "provenance": "loaded by load_calibrators",
+   "load_verification": {
+    "status": "LOADED",
+    "type": "LogisticRegression",
+    "n_features_in": 1
+   }
+  },
+  {
+   "path": "artifacts/gate/v0_2/m4b1/02_calibration/summary.json",
+   "role": "calibration record",
+   "component": "stage M4b-1/02 summary: calibrator paths and SHA-256 values checked at load",
+   "bytes": 6343,
+   "sha256": "2de6457016f6c73d6aff598da36443b3eb73496582b3f1eb80d57a8de370c960",
+   "expected_input": "JSON",
+   "dependencies": "-",
+   "provenance": "stage 02 output",
+   "load_verification": {
+    "status": "READ",
+    "type": "json"
+   }
+  },
+  {
+   "path": "artifacts/locks/threshold_lock_v0_2.json",
+   "role": "threshold lock",
+   "component": "Locked thresholds (role 9b); Gate B t = 0.05927309439311807; ACCEPT iff calibrated score <= t",
+   "bytes": 3739,
+   "sha256": "bc69c3011739a342b43a8b42b55840a3a8c25d9a5a7bc3ba9c9c3de52568d8de",
+   "expected_input": "JSON; records the Gate B model and calibrator SHA-256",
+   "dependencies": "-",
+   "provenance": "stage M4b-1/03 on role 9b_threshold (fold 9)",
+   "load_verification": {
+    "status": "READ",
+    "type": "json"
+   }
+  },
+  {
+   "path": "configs/protocol_v0_2.yaml",
+   "role": "configuration (pinned)",
+   "component": "pre-registered protocol v0.2 (feature whitelist and order)",
+   "bytes": 26245,
+   "sha256": "38ad0a8669015b442bf80dac35438d7336c3da9bfca4f7804442b95fe5260773",
+   "expected_input": "YAML",
+   "dependencies": "PyYAML 6.0.3",
+   "provenance": "pinned by artifacts/locks/protocol_v0_2.lock.json (D-037)",
+   "load_verification": {
+    "status": "READ",
+    "type": "yaml"
+   }
+  },
+  {
+   "path": "configs/preprocessing.yaml",
+   "role": "configuration",
+   "component": "filtering, resampling to 250 Hz, 2,048-sample window, per-lead min-max",
+   "bytes": 3825,
+   "sha256": "c601f64b75509089dada0839c33f5b957fcc118f509081488dfb07b2540ce0bd",
+   "expected_input": "YAML",
+   "dependencies": "PyYAML 6.0.3",
+   "provenance": "milestone 2a",
+   "load_verification": {
+    "status": "READ",
+    "type": "yaml"
+   }
+  },
+  {
+   "path": "configs/d1_generation_v0_1.yaml",
+   "role": "configuration",
+   "component": "frozen reconstructor path and SHA-256; fixed scoring path (batch 64, float32, deterministic cuDNN)",
+   "bytes": 2149,
+   "sha256": "f998aee1b2e0330eeeebf39874189e26b937be0b8a1b3bff26d926ba679fed6a",
+   "expected_input": "YAML",
+   "dependencies": "PyYAML 6.0.3",
+   "provenance": "milestone M4a",
+   "load_verification": {
+    "status": "READ",
+    "type": "yaml"
+   }
+  }
+ ]
+}

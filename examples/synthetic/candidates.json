@@ -1,0 +1,102 @@
+{
+ "generator": "make_synthetic_ecg.py",
+ "synthetic": true,
+ "candidates": [
+  {
+   "id": "cand01",
+   "seed": 1,
+   "heart_rate_bpm": 72,
+   "observed": [
+    "I",
+    "III",
+    "V1",
+    "V2",
+    "V4",
+    "V6"
+   ],
+   "file": "synthetic_cand01.csv",
+   "rows": 5000,
+   "fs_hz": 500,
+   "units": "mV",
+   "sha256": "294dd28ca303bd3fd808bf59831a2f772e791dd5ad8d9c81a4b1f9c52b45903f"
+  },
+  {
+   "id": "cand02",
+   "seed": 2,
+   "heart_rate_bpm": 64,
+   "observed": [
+    "I",
+    "III",
+    "V1",
+    "V3",
+    "V5"
+   ],
+   "file": "synthetic_cand02.csv",
+   "rows": 5000,
+   "fs_hz": 500,
+   "units": "mV",
+   "sha256": "776b7c8a2bf087c25aed28af3e58f254a0f93641164214c50aa2f8bed3575605"
+  },
+  {
+   "id": "cand03",
+   "seed": 3,
+   "heart_rate_bpm": 80,
+   "observed": [
+    "I",
+    "V2",
+    "V5"
+   ],
+   "file": "synthetic_cand03.csv",
+   "rows": 5000,
+   "fs_hz": 500,
+   "units": "mV",
+   "sha256": "9c436a58c76885ea1c4aa479aa4dcceea5336059a790e0b82148f5437fc382ab"
+  },
+  {
+   "id": "cand04",
+   "seed": 4,
+   "heart_rate_bpm": 70,
+   "observed": [
+    "V2"
+   ],
+   "file": "synthetic_cand04.csv",
+   "rows": 5000,
+   "fs_hz": 500,
+   "units": "mV",
+   "sha256": "64caeacc9e53f8fd4a0f9b7c07d5bd013fe3fb09165d99b8066b49810d5bb13f"
+  },
+  {
+   "id": "cand05",
+   "seed": 5,
+   "heart_rate_bpm": 76,
+   "observed": [
+    "I",
+    "III",
+    "V1",
+    "V2",
+    "V3",
+    "V4",
+    "V6"
+   ],
+   "file": "synthetic_cand05.csv",
+   "rows": 5000,
+   "fs_hz": 500,
+   "units": "mV",
+   "sha256": "47797724736c26cedc9aed104675b94ca7d86cb8dd88cf82580fd46afe081caa"
+  },
+  {
+   "id": "cand06",
+   "seed": 6,
+   "heart_rate_bpm": 60,
+   "observed": [
+    "III",
+    "V4"
+   ],
+   "file": "synthetic_cand06.csv",
+   "rows": 5000,
+   "fs_hz": 500,
+   "units": "mV",
+   "sha256": "be97bb757bd0952f18847786071ba66f024b8ad8506daf875066b6a019830e15"
+  }
+ ]
+}

@@ -1,0 +1,22 @@
+{
+  "file": "configs/protocol_v0_2.yaml",
+  "sha256": "38ad0a8669015b442bf80dac35438d7336c3da9bfca4f7804442b95fe5260773",
+  "status": "APPROVED",
+  "approved_on": "2026-10-24",
+  "pinned_utc": "2026-10-24T07:36:53+00:00",
+  "approval_phrase": "APPROVE PIN v0.2 38ad0a8669015b442bf80dac35438d7336c3da9bfca4f7804442b95fe5260773",
+  "approval_note": "Owner approved protocol v0.2 proposal P5 option B (S-A headline C_mean, prespecified sensitivity C_pair), the candidate recommended by Consensus. The archived alternative (option A, C_pair headline) was not approved. This pin does not authorise gate fitting, calibration, threshold selection, any fold-10 access or M5; each needs a separate explicit owner authorisation.",
+  "gate_preregistration": {
+    "file": "configs/gate_m4b_v0_2.yaml",
+    "sha256": "80fdd7a4c7aec27005eeb84c93b47228923b86d2867ce1da540b12e0aa264690"
+  },
+  "base_protocol": {
+    "file": "configs/protocol_v0_1.yaml",
+    "sha256": "55a1ceb6ad4a2078f5b856752bd8c8dd9954ea2168e547760eb6529b8ba32b43",
+    "lock": "artifacts/locks/protocol_v0_1.lock.json"
+  },
+  "not_approved": {
+    "P5_option_A_alternative": "8ad8ed06786c9616554063f4ec608b22e7335a7fb16fe93bb1bad92001636da4"
+  },
+  "decision_record": "docs/decision_log.md D-037"
+}

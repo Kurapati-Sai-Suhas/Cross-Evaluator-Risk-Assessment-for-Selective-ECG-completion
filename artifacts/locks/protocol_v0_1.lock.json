@@ -1,0 +1,18 @@
+{
+  "file": "configs/protocol_v0_1.yaml",
+  "sha256": "55a1ceb6ad4a2078f5b856752bd8c8dd9954ea2168e547760eb6529b8ba32b43",
+  "status": "APPROVED",
+  "approved_on": "2026-10-20",
+  "pinned_utc": "2026-10-19T19:36:07+00:00",
+  "approval_note": "Owner approved protocol v0.1 and architecture lock v0.1 with all recommended defaults (O-1 c_min 0.80, O-2 AUROC lower bound 0.90 and half-width 0.05, O-3 three attempts, O-4 ResNet/Inception families, O-5 include E_dir and M4, O-6 shuffling and best-so-far checkpoint).",
+  "owner_decisions": {
+    "O-1_min_coverage": 0.8,
+    "O-2_auroc_lower_bound_floor": 0.9,
+    "O-2_max_ci_half_width": 0.05,
+    "O-3_max_training_attempts": 3,
+    "O-4_evaluator_families": "E1 ResNet-family 1-D CNN; E2 Inception-family 1-D CNN",
+    "O-5_scope": "E_dir and M4 included",
+    "O-6": "fixed-seed shuffling + best-so-far checkpoint (AD-10/AD-11)"
+  },
+  "architecture_lock": "docs/architecture_lock_v0_1.md (APPROVED same date)"
+}

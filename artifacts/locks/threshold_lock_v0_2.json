@@ -1,0 +1,87 @@
+{
+  "file": "artifacts/locks/threshold_lock_v0_2.json",
+  "created_utc": "2026-10-24T07:59:30+00:00",
+  "authorisation": "owner, 2026-10-24: \"I authorise M4b-1 stages 01-05: Gate A/B patient-grouped CV on B_gate (M3 optional), Platt on 9a only, threshold selection and lock on 9b only, fold-10/M5 build and dry-run on synthetic/9b data only. Fold 10 stays sealed until I separately authorise the final run.\"",
+  "protocol_v0_2": {
+    "file": "configs/protocol_v0_2.yaml",
+    "sha256": "38ad0a8669015b442bf80dac35438d7336c3da9bfca4f7804442b95fe5260773",
+    "lock_sha256": "6562b8553e9297bffea4bb6c3aaf4d4214467f818aaf3cf6da280e52f2224a01"
+  },
+  "gate_preregistration_sha256": "80fdd7a4c7aec27005eeb84c93b47228923b86d2867ce1da540b12e0aa264690",
+  "rule": "distinct calibrated 9b scores; accept if score <= t; minimise pooled accepted D1 rate s.t. coverage >= 0.8; tie-break lowest risk, highest coverage, smallest t",
+  "c_min": 0.8,
+  "rows_9b": 8816,
+  "d1_rows_9b": 346,
+  "methods": {
+    "gate_A": {
+      "t": {
+        "repr": "0.05615412160456595",
+        "hex": "0x1.cc03ba7a78917p-5"
+      },
+      "coverage_9b": 0.8090970961887477,
+      "risk_9b": 0.029721015000700967,
+      "n_candidates": 255,
+      "n_feasible": 50,
+      "calibrator_sha256": "578dde3a706741ea87b0fda3f3ab005b0702c1d4c2c5d36d26c8eff499a38750",
+      "model_sha256": "7a007c2bee64289bb9741b7b141ac53d6acef498df03cb9aa32c8a182dc324fb"
+    },
+    "gate_B": {
+      "t": {
+        "repr": "0.05927309439311807",
+        "hex": "0x1.e590b03e6fed9p-5"
+      },
+      "coverage_9b": 0.8000226860254084,
+      "risk_9b": 0.016730469303842338,
+      "n_candidates": 8816,
+      "n_feasible": 1764,
+      "calibrator_sha256": "341ba86a3e2b58c287524ad95ab57a2e535be694e4e9018f987e685c177b45ca",
+      "model_sha256": "7b863410bd34321adb6cec972a2264eae4e897e522358a54a3d4c2ebafac5a5d"
+    },
+    "M3_signal_quality_only": {
+      "t": {
+        "repr": "0.06167554752433651",
+        "hex": "0x1.f93eff728eb27p-5"
+      },
+      "coverage_9b": 0.8047867513611615,
+      "risk_9b": 0.01719520789288231,
+      "n_candidates": 8816,
+      "n_feasible": 1764,
+      "calibrator_sha256": "4e3f54b939c71e21de96fa4f80d1c7fa31b405aecb11a3700b796b411b60ef35",
+      "model_sha256": "0b9be4420127057466f2b1d24bc4dbd172a0d8cd93fcdd56df565881e6e47ce6"
+    },
+    "M2_uncertainty_only": {
+      "t": {
+        "repr": "0.02551206274126221",
+        "hex": "0x1.a1fd58c82464dp-6"
+      },
+      "coverage_9b": 0.8042196007259528,
+      "risk_9b": 0.015796897038081806,
+      "n_candidates": 8813,
+      "n_feasible": 1764,
+      "calibrator_sha256": "7f17da1bbef97304ede584af52365fdc6a5427f0ddd06ef7e68a5687df8fbeb1"
+    }
+  },
+  "M0_accept_all": "no threshold (constant score; coverage 1.0)",
+  "not_locked": {
+    "E_dir_margin": "NOT IMPLEMENTED: E_dir margin scores were never computed on 9a/9b (secondary, label-based only)"
+  },
+  "calibrated_9b_scores": {
+    "path": "artifacts/gate/v0_2/m4b1/03_threshold/9b_calibrated_scores.csv",
+    "sha256": "3043aade993adbc9943b5f51e2d1d3c5197777d9c1c6aca2727b4ae61b96a98a"
+  },
+  "stage_records": {
+    "fit_summary_sha256": "46a7b65d38459d11c2a536b4a53940911f2a75f91bcca467d8e2cafad11c1200",
+    "calibration_summary_sha256": "2de6457016f6c73d6aff598da36443b3eb73496582b3f1eb80d57a8de370c960"
+  },
+  "environment": {
+    "os": "Windows-11-10.0.26300-SP0",
+    "python": "3.12.10",
+    "numpy": "2.4.4",
+    "scipy": "1.18.1",
+    "scikit-learn": "1.9.0",
+    "pandas": "3.0.2",
+    "joblib": "1.6.0"
+  },
+  "code_tree_sha256": "3a67b79214613e9f71e6d8ab963651568550de64c5e94a5d439318b0163fa8c6",
+  "fold10_rule": "this lock does not authorise any fold-10 access; the final run needs a separate explicit owner authorisation"
+}

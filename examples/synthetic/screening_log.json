@@ -1,0 +1,99 @@
+{
+ "created_utc": "2026-10-27T12:00:35+00:00",
+ "backend": "http://127.0.0.1:8765",
+ "backend_info": {
+  "status": "EXPLORATORY DEMO - NOT VALIDATED (no external or clinical validation; research prototype only)",
+  "warning": "Research prototype only \u2014 not a medical device. Do not use for diagnosis or treatment.",
+  "schema_version": "partial-ecg-csv/1",
+  "models": {
+   "reconstructor": "L2G-ECG based ECGen, G v0.1 (reconstructor of record)",
+   "reconstructor_sha256": "d515875a7783be5a54934001e13b182ff4f75a5e35554f0e9590d5a1c602bb3b",
+   "gate": "Gate B: Random Forest on G1 (15) + G2 (15), fitted on B_gate",
+   "gate_sha256": "7b863410bd34321adb6cec972a2264eae4e897e522358a54a3d4c2ebafac5a5d",
+   "calibrator": "Platt scaling fitted on 9a",
+   "calibrator_sha256": "341ba86a3e2b58c287524ad95ab57a2e535be694e4e9018f987e685c177b45ca",
+   "threshold": "0.05927309439311807",
+   "threshold_locked_on": "9b",
+   "threshold_lock_sha256": "bc69c3011739a342b43a8b42b55840a3a8c25d9a5a7bc3ba9c9c3de52568d8de",
+   "not_used": "L2G v0.2-exp (exploratory, development data only) is not part of this app"
+  }
+ },
+ "rule": "fixed order; stop when both decisions seen; primary cand01 always first; no selection on output quality",
+ "candidates_available": 6,
+ "candidates_tried": 4,
+ "tried": [
+  {
+   "id": "cand01",
+   "observed": [
+    "I",
+    "III",
+    "V1",
+    "V2",
+    "V4",
+    "V6"
+   ],
+   "outcome": "RELEASED",
+   "decision": "ACCEPT",
+   "calibrated_score": 0.0025646914922358727,
+   "threshold": "0.05927309439311807",
+   "release_check": {
+    "passed": true,
+    "problems": []
+   },
+   "warnings": []
+  },
+  {
+   "id": "cand02",
+   "observed": [
+    "I",
+    "III",
+    "V1",
+    "V3",
+    "V5"
+   ],
+   "outcome": "RELEASED",
+   "decision": "ACCEPT",
+   "calibrated_score": 0.002267564233668174,
+   "threshold": "0.05927309439311807",
+   "release_check": {
+    "passed": true,
+    "problems": []
+   },
+   "warnings": []
+  },
+  {
+   "id": "cand03",
+   "observed": [
+    "I",
+    "V2",
+    "V5"
+   ],
+   "outcome": "RELEASED",
+   "decision": "ACCEPT",
+   "calibrated_score": 0.04139701253634103,
+   "threshold": "0.05927309439311807",
+   "release_check": {
+    "passed": true,
+    "problems": []
+   },
+   "warnings": []
+  },
+  {
+   "id": "cand04",
+   "observed": [
+    "V2"
+   ],
+   "outcome": "ABSTAINED",
+   "decision": "ABSTAIN",
+   "calibrated_score": 0.07616321041813778,
+   "threshold": "0.05927309439311807",
+   "release_check": null,
+   "warnings": []
+  }
+ ],
+ "first_of_each_decision": {
+  "ACCEPT": "cand01",
+  "ABSTAIN": "cand04"
+ },
+ "note": "software smoke test on synthetic signals; not a performance metric"
+}

@@ -1,0 +1,74 @@
+# Milestone 2a: waveform preprocessing, missingness masks, copy-through.
+# Every setting is tagged:
+#   PAPER   = stated in L2G-ECG (Srivastava et al., IEEE JBHI 2025, DOI 10.1109/JBHI.2025.3587428)
+#   CODE    = only in the authors' released code (github.com/apoorva-srivastava5/L2G-ECG, commit 92788cd6ca)
+#   PROJECT = our declared choice where the paper is silent or PTB-XL needs an adapter
+# Decisions: docs/decision_log.md D-014 (preprocessing), D-015 (masks), D-016 (copy-through),
+# D-017 (signal-quality step). Do not change a value without a new decision-log entry.
+
+source:
+  resolution: hr            # PROJECT: use the 500 Hz files; never upsample the 100 Hz files
+  fs: 500                   # verified on every record (artifacts/reports/waveform_verification.md)
+
+# PAPER (p. 1: a=1 I, a=2 II, a=3 III, a=4 aVR, ...) = PTB-XL header order (verified).
+lead_order: [I, II, III, AVR, AVL, AVF, V1, V2, V3, V4, V5, V6]
+
+# PAPER uses a rule-based signal-quality assessment (ref. [19]). Its algorithm is not available
+# to us, so it is NOT reproduced; every record is kept and flat leads are flagged (PROJECT, D-017).
+signal_quality_assessment: none
+
+# PROJECT (D-017): records excluded from reconstruction training and evaluation because a lead is
+# exactly constant (found by src/data/verify_ptbxl_waveforms.py on every record). The frozen split
+# manifest is NOT changed; later code skips these records. Declared before any model was trained.
+quality_exclusions:
+  - ecg_id: 12722
+    reason: "V5 constant in records500 and records100; metadata electrodes_problems = 'v4, v5'; role A_fit"
+
+highpass:
+  family: butterworth       # PAPER
+  order: 6                  # PAPER ("sixth-order")
+  cutoff_hz: 0.5            # PAPER
+  zero_phase: true          # PROJECT (paper silent). Forward-backward filtering squares the
+                            # magnitude response: -6 dB instead of -3 dB at 0.5 Hz, no phase shift.
+
+notch:
+  freq_hz: 50.0             # PAPER (50 Hz mains; PTB-XL is from Germany)
+  quality_factor: 30.0      # PROJECT (paper silent): about 1.7 Hz wide stop band
+  zero_phase: true          # PROJECT
+
+resample:
+  target_fs: 250            # PAPER
+  method: polyphase         # PROJECT (paper silent): scipy.signal.resample_poly, anti-aliased
+
+window:
+  length: 2048              # PAPER: B = 2048 samples = 8.192 s at 250 Hz
+  # PROJECT: offset of the 2048-sample window inside the 2500-sample (10 s) record.
+  # The paper's two-window rule cannot be applied to 10 s records as written (UNKNOWN,
+  # docs/l2g_architecture_status.md Section 5). Evaluation always uses offset 0.
+  evaluation_offset: 0
+
+normalization:
+  method: per_lead_minmax   # PAPER eq. 9: each lead scaled to [0, 1] over the window
+  # PROJECT: a lead whose range is below this (in mV) is "flat"; it becomes all zeros and
+  # is flagged instead of dividing by ~0 (the paper does not say what it does).
+  flat_lead_epsilon_mV: 1.0e-6
+
+output_dtype: float32       # PROJECT
+
+masks:
+  convention: "1 = observed, 0 = missing"   # PROJECT (design document Rev. 2.0)
+  missing_fill_value: 0.0   # PAPER (missing leads are zero, p. 1); CODE does the same
+  # PAPER pp. 7-8: 12 single-lead inputs + every 2..7-lead subset of {I, III, V1..V6} = 258.
+  lead_combinations: l2g_258
+  # PROJECT (AD-4): the paper does not say how combinations were sampled in training.
+  training_sampling: uniform_over_combinations
+  # PROJECT: evaluation masks are a deterministic function of (seed, ecg_id), so every
+  # model, evaluator and gate sees exactly the same masked records.
+  evaluation_assignment: per_record_seeded
+  seed: 20261030
+
+model_input:
+  append_mask_channels: true  # PROJECT (AD-1): 12 signal + 12 mask channels = 24 inputs
+
+copy_through:
+  enabled: true               # PROJECT (AD-2): observed samples are returned unchanged

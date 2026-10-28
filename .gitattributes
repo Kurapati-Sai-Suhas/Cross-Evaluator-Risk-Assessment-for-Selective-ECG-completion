@@ -1,0 +1,4 @@
+# Keep every file byte-for-byte as committed. The application verifies the SHA-256 of its frozen locks, configurations
+# and code at start-up (app/backend/integrity.py, artifacts/runtime/manifest.json); any line-ending conversion on checkout
+# (for example core.autocrlf on Windows) would change those hashes and make the backend refuse to start.
+* -text

@@ -1,0 +1,373 @@
+{
+  "stage": "01 fit",
+  "role": "B_gate",
+  "rows": 20992,
+  "patients": 2252,
+  "d1_rows": 696,
+  "per_fold": [
+    {
+      "fold": 0,
+      "rows": 4192,
+      "patients": 450,
+      "d1": 137
+    },
+    {
+      "fold": 1,
+      "rows": 4216,
+      "patients": 451,
+      "d1": 140
+    },
+    {
+      "fold": 2,
+      "rows": 4192,
+      "patients": 447,
+      "d1": 137
+    },
+    {
+      "fold": 3,
+      "rows": 4192,
+      "patients": 449,
+      "d1": 145
+    },
+    {
+      "fold": 4,
+      "rows": 4200,
+      "patients": 455,
+      "d1": 137
+    }
+  ],
+  "methods": {
+    "gate_A": {
+      "features": [
+        "g1_n_observed",
+        "g1_obs_I",
+        "g1_obs_II",
+        "g1_obs_III",
+        "g1_obs_AVR",
+        "g1_obs_AVL",
+        "g1_obs_AVF",
+        "g1_obs_V1",
+        "g1_obs_V2",
+        "g1_obs_V3",
+        "g1_obs_V4",
+        "g1_obs_V5",
+        "g1_obs_V6",
+        "g1_n_limb_observed",
+        "g1_n_precordial_observed"
+      ],
+      "grid": [
+        {
+          "min_samples_leaf": 10,
+          "max_features": "sqrt",
+          "log_loss": 0.17038975483172325,
+          "oof_auroc_descriptive": 0.656076631939253
+        },
+        {
+          "min_samples_leaf": 10,
+          "max_features": 0.5,
+          "log_loss": 0.17038975483172325,
+          "oof_auroc_descriptive": 0.656076631939253
+        },
+        {
+          "min_samples_leaf": 50,
+          "max_features": "sqrt",
+          "log_loss": 0.1377225692257366,
+          "oof_auroc_descriptive": 0.6884056339735138
+        },
+        {
+          "min_samples_leaf": 50,
+          "max_features": 0.5,
+          "log_loss": 0.1384705328152895,
+          "oof_auroc_descriptive": 0.6834429466878702
+        },
+        {
+          "min_samples_leaf": 200,
+          "max_features": "sqrt",
+          "log_loss": 0.1376304277598523,
+          "oof_auroc_descriptive": 0.6918466961951621
+        },
+        {
+          "min_samples_leaf": 200,
+          "max_features": 0.5,
+          "log_loss": 0.13777184352872907,
+          "oof_auroc_descriptive": 0.6899341965915938
+        }
+      ],
+      "selected": {
+        "min_samples_leaf": 200,
+        "max_features": "sqrt",
+        "log_loss": 0.1376304277598523,
+        "oof_auroc_descriptive": 0.6918466961951621
+      },
+      "model": {
+        "path": "artifacts/gate/v0_2/m4b1/01_fit/models/gate_A.joblib",
+        "sha256": "7a007c2bee64289bb9741b7b141ac53d6acef498df03cb9aa32c8a182dc324fb"
+      },
+      "seconds": 29.2
+    },
+    "gate_B": {
+      "features": [
+        "g1_n_observed",
+        "g1_obs_I",
+        "g1_obs_II",
+        "g1_obs_III",
+        "g1_obs_AVR",
+        "g1_obs_AVL",
+        "g1_obs_AVF",
+        "g1_obs_V1",
+        "g1_obs_V2",
+        "g1_obs_V3",
+        "g1_obs_V4",
+        "g1_obs_V5",
+        "g1_obs_V6",
+        "g1_n_limb_observed",
+        "g1_n_precordial_observed",
+        "g2_ptp_mv_mean",
+        "g2_ptp_mv_min",
+        "g2_ptp_mv_max",
+        "g2_bw_frac_mean",
+        "g2_bw_frac_min",
+        "g2_bw_frac_max",
+        "g2_hf_frac_mean",
+        "g2_hf_frac_min",
+        "g2_hf_frac_max",
+        "g2_flat_frac_mean",
+        "g2_flat_frac_min",
+        "g2_flat_frac_max",
+        "g2_kurtosis_mean",
+        "g2_kurtosis_min",
+        "g2_kurtosis_max"
+      ],
+      "grid": [
+        {
+          "min_samples_leaf": 10,
+          "max_features": "sqrt",
+          "log_loss": 0.1209877945654516,
+          "oof_auroc_descriptive": 0.8179860478708221
+        },
+        {
+          "min_samples_leaf": 10,
+          "max_features": 0.5,
+          "log_loss": 0.12398347166434953,
+          "oof_auroc_descriptive": 0.8096311444075951
+        },
+        {
+          "min_samples_leaf": 50,
+          "max_features": "sqrt",
+          "log_loss": 0.1206778702755454,
+          "oof_auroc_descriptive": 0.8227956134270271
+        },
+        {
+          "min_samples_leaf": 50,
+          "max_features": 0.5,
+          "log_loss": 0.12208988059807142,
+          "oof_auroc_descriptive": 0.8160397807846176
+        },
+        {
+          "min_samples_leaf": 200,
+          "max_features": "sqrt",
+          "log_loss": 0.12208846989670835,
+          "oof_auroc_descriptive": 0.8215070689428641
+        },
+        {
+          "min_samples_leaf": 200,
+          "max_features": 0.5,
+          "log_loss": 0.12213214666475547,
+          "oof_auroc_descriptive": 0.8174120714573734
+        }
+      ],
+      "selected": {
+        "min_samples_leaf": 50,
+        "max_features": "sqrt",
+        "log_loss": 0.1206778702755454,
+        "oof_auroc_descriptive": 0.8227956134270271
+      },
+      "model": {
+        "path": "artifacts/gate/v0_2/m4b1/01_fit/models/gate_B.joblib",
+        "sha256": "7b863410bd34321adb6cec972a2264eae4e897e522358a54a3d4c2ebafac5a5d"
+      },
+      "seconds": 106.3
+    },
+    "M3_signal_quality_only": {
+      "features": [
+        "g2_ptp_mv_mean",
+        "g2_ptp_mv_min",
+        "g2_ptp_mv_max",
+        "g2_bw_frac_mean",
+        "g2_bw_frac_min",
+        "g2_bw_frac_max",
+        "g2_hf_frac_mean",
+        "g2_hf_frac_min",
+        "g2_hf_frac_max",
+        "g2_flat_frac_mean",
+        "g2_flat_frac_min",
+        "g2_flat_frac_max",
+        "g2_kurtosis_mean",
+        "g2_kurtosis_min",
+        "g2_kurtosis_max"
+      ],
+      "grid": [
+        {
+          "min_samples_leaf": 10,
+          "max_features": "sqrt",
+          "log_loss": 0.12413141536726241,
+          "oof_auroc_descriptive": 0.8077899317118146
+        },
+        {
+          "min_samples_leaf": 10,
+          "max_features": 0.5,
+          "log_loss": 0.12632718290498632,
+          "oof_auroc_descriptive": 0.8044593748159424
+        },
+        {
+          "min_samples_leaf": 50,
+          "max_features": "sqrt",
+          "log_loss": 0.12250489418752816,
+          "oof_auroc_descriptive": 0.8145608075199688
+        },
+        {
+          "min_samples_leaf": 50,
+          "max_features": 0.5,
+          "log_loss": 0.12359428075912084,
+          "oof_auroc_descriptive": 0.810611817231412
+        },
+        {
+          "min_samples_leaf": 200,
+          "max_features": "sqrt",
+          "log_loss": 0.12301699367212597,
+          "oof_auroc_descriptive": 0.814904924360839
+        },
+        {
+          "min_samples_leaf": 200,
+          "max_features": 0.5,
+          "log_loss": 0.12299711121963774,
+          "oof_auroc_descriptive": 0.8132245142579478
+        }
+      ],
+      "selected": {
+        "min_samples_leaf": 50,
+        "max_features": "sqrt",
+        "log_loss": 0.12250489418752816,
+        "oof_auroc_descriptive": 0.8145608075199688
+      },
+      "model": {
+        "path": "artifacts/gate/v0_2/m4b1/01_fit/models/M3_signal_quality_only.joblib",
+        "sha256": "0b9be4420127057466f2b1d24bc4dbd172a0d8cd93fcdd56df565881e6e47ce6"
+      },
+      "seconds": 102.6
+    }
+  },
+  "created_utc": "2026-10-24T07:57:03+00:00",
+  "authorisation": "owner, 2026-10-24: \"I authorise M4b-1 stages 01-05: Gate A/B patient-grouped CV on B_gate (M3 optional), Platt on 9a only, threshold selection and lock on 9b only, fold-10/M5 build and dry-run on synthetic/9b data only. Fold 10 stays sealed until I separately authorise the final run.\"",
+  "preflight_checks": [
+    {
+      "check": "protocol_v0_2_pinned",
+      "status": "PASS",
+      "detail": "38ad0a8669015b442bf80dac35438d7336c3da9bfca4f7804442b95fe5260773"
+    },
+    {
+      "check": "gate_preregistration_locked",
+      "status": "PASS",
+      "detail": "80fdd7a4c7aec27005eeb84c93b47228923b86d2867ce1da540b12e0aa264690"
+    },
+    {
+      "check": "features_config_and_archive",
+      "status": "PASS",
+      "detail": "3705aea7bebd22e2b36dc389dcb16437cf259409407bbbe858ab71dac7f7b171"
+    },
+    {
+      "check": "feature_blocks_identical",
+      "status": "PASS",
+      "detail": [
+        "output_dir",
+        "d1_keys_dir",
+        "d1_hash_manifest_sha256",
+        "roles",
+        "g1",
+        "g2"
+      ]
+    },
+    {
+      "check": "feature_columns_as_extracted",
+      "status": "PASS",
+      "detail": "30 columns"
+    },
+    {
+      "check": "hash_B_gate_features.csv",
+      "status": "PASS",
+      "detail": "c17d3b06c674a2d45a3748d02e964aefac3c3cea4a3d66519ba7e67a80e7bdc9"
+    },
+    {
+      "check": "hash_B_gate_rows.csv",
+      "status": "PASS",
+      "detail": "f66b5d606e20f28957cd857ab40a10533a258f1a0dd98e5e0faee93454ea05c9"
+    },
+    {
+      "check": "rows_aligned",
+      "status": "PASS",
+      "detail": 20992
+    },
+    {
+      "check": "hash_B_gate_OFFLINE_d1_labels.csv",
+      "status": "PASS",
+      "detail": "9d68764d10b6b40d554ab818ebd222f138ec9198c46f9aea679dc0be145b36d5"
+    },
+    {
+      "check": "patients_in_one_fold_only",
+      "status": "PASS",
+      "detail": 2252
+    },
+    {
+      "check": "hash_B_gate_OFFLINE_d1_labels.csv",
+      "status": "PASS",
+      "detail": "9d68764d10b6b40d554ab818ebd222f138ec9198c46f9aea679dc0be145b36d5"
+    },
+    {
+      "check": "hash_B_gate_OFFLINE_d1_labels.csv",
+      "status": "PASS",
+      "detail": "9d68764d10b6b40d554ab818ebd222f138ec9198c46f9aea679dc0be145b36d5"
+    },
+    {
+      "check": "hash_B_gate_OFFLINE_d1_labels.csv",
+      "status": "PASS",
+      "detail": "9d68764d10b6b40d554ab818ebd222f138ec9198c46f9aea679dc0be145b36d5"
+    }
+  ],
+  "code_tree_sha256": "2df311d33c498fc3ec1445db6c48b8a1daa48c2abbdf74a691d9e8365352884a",
+  "environment": {
+    "os": "Windows-11-10.0.26300-SP0",
+    "python": "3.12.10",
+    "packages": {
+      "numpy": "2.4.4",
+      "pandas": "3.0.2",
+      "scipy": "1.18.1",
+      "wfdb": "4.3.1",
+      "PyYAML": "6.0.3",
+      "pytest": "9.1.1",
+      "torch": "2.11.0+cu128",
+      "matplotlib": "3.11.2",
+      "scikit-learn": "1.9.0",
+      "joblib": "1.6.0"
+    },
+    "torch_cuda_build": "12.8",
+    "cudnn": 91900,
+    "cuda_available": true,
+    "gpu": "NVIDIA GeForce RTX 5050 Laptop GPU",
+    "gpu_capability": "12.0",
+    "gpu_total_memory_MiB": 8124,
+    "nvidia_driver": "621.01"
+  },
+  "fold10_loaded": false,
+  "files": {
+    "artifacts/gate/v0_2/m4b1/01_fit/cv_grid_gate_A.csv": "882198791d47e9551a1a7e8bce11f97bb35055315f20259c9e699fc486fd4b8e",
+    "artifacts/gate/v0_2/m4b1/01_fit/cv_grid_gate_B.csv": "6cb0363bf7af8f65b0a3d10da6236e520d79a92eff9a234c191c729a098ad72b",
+    "artifacts/gate/v0_2/m4b1/01_fit/cv_grid_M3_signal_quality_only.csv": "0ebe9b96d434e03abef88fff9cbdbb26fd772e83cffde8c38b39e68654bc3c0e",
+    "artifacts/gate/v0_2/m4b1/01_fit/fold_assignment.csv": "0247664ff5ec5b08e587be9d9f1aee69b05e934dabbe06a746f65447cb697299",
+    "artifacts/gate/v0_2/m4b1/01_fit/models/gate_A.joblib": "7a007c2bee64289bb9741b7b141ac53d6acef498df03cb9aa32c8a182dc324fb",
+    "artifacts/gate/v0_2/m4b1/01_fit/models/gate_B.joblib": "7b863410bd34321adb6cec972a2264eae4e897e522358a54a3d4c2ebafac5a5d",
+    "artifacts/gate/v0_2/m4b1/01_fit/models/M3_signal_quality_only.joblib": "0b9be4420127057466f2b1d24bc4dbd172a0d8cd93fcdd56df565881e6e47ce6",
+    "artifacts/gate/v0_2/m4b1/01_fit/oof_gate_A.csv": "079fb59866d4bdab0d9f725088887846c27657b87936de2c526f0325ac349f24",
+    "artifacts/gate/v0_2/m4b1/01_fit/oof_gate_B.csv": "a76bd99b2d135f7b0240237b25bff3895175cc3f8187a9d5996e0d78abd52a76",
+    "artifacts/gate/v0_2/m4b1/01_fit/oof_M3_signal_quality_only.csv": "b73f3e6941e7c4a115bb56a5b9cedfbb60cf227dd35b316132faeda28f9264ed"
+  }
+}

@@ -1,0 +1,31 @@
+# Milestone M4a: offline D1 generation (protocol v0.1 Sections 2-3; architecture lock v0.1 Section 1).
+# Written 2026-10-20 BEFORE any D1 was generated. Protocol parameters (outputs, seed, masks per record, roles, bootstrap)
+# are read from configs/protocol_v0_1.yaml, never re-typed here. E1 thresholds are read from the E1 run summary.
+version: d1_v0_1
+output_dir: artifacts/d1/v0_1          # refused if it already exists (never overwritten)
+
+roles: [C_dev, B_gate, 9a_calibration, 9b_threshold]
+sanity_only_roles: [C_dev]             # development sanity check only: no gate fitting, no feature or threshold choice
+# test_fold10 is refused by the code: protocol Section 7 allows fold-10 D1 only after the threshold lock exists.
+# A_fit is not a D1 role (protocol d1.roles) and is refused.
+
+frozen:                                 # expected SHA-256; any mismatch stops the run (never repaired)
+  g_checkpoint: artifacts/runs/l2g_v0_1_run02/best.pt
+  g_sha256: d515875a7783be5a54934001e13b182ff4f75a5e35554f0e9590d5a1c602bb3b
+  e1_run: artifacts/runs/e1_resnet1d_v0_1_run01      # summary.json gives the checkpoint path, its hash and tau
+  e1_sha256: e10c250c78782fe23449fa9dc39dfb7fc981baac00eb690511444386a4357c1f
+  protocol_sha256: 55a1ceb6ad4a2078f5b856752bd8c8dd9954ea2168e547760eb6529b8ba32b43
+
+data:
+  cache_dir: "C:/ecg_cache/v0_1"        # same preprocessing cache and stale-cache guard as M2c/M3
+  window_offset: 0                      # protocol evaluation window (as for C_dev in M2c/M3)
+
+scoring:                                # one fixed scoring path for complete AND reconstructed ECGs (M3b finding)
+  batch_rows: 64                        # every G and E1 forward pass has exactly this batch shape (last batch zero-padded)
+  dtype: float32
+  cudnn_deterministic: true
+  cudnn_benchmark: false
+  complete_scored_once_per_record: true # p_full stored per record and reused for all 8 mask rows
+
+boundary_eps: 1.0e-6                    # report every probability with |p - tau| <= eps (no relabelling, no tau change)
+reproducibility_check_rows: 512         # per role: first 512 rows re-scored in reverse order through the same path

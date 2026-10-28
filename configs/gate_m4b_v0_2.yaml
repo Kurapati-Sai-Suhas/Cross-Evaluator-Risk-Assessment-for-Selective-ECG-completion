@@ -1,0 +1,98 @@
+# M4b gate pre-registration for protocol v0.2 (PROPOSED). Written 2026-10-21 BEFORE any gate feature was computed.
+# Approval and pinning are recorded only in artifacts/locks/ (never in this file), so the SHA-256 the owner approves
+# stays the SHA-256 that is pinned. Items marked [OWNER] are judgement calls approved together with this file's hash.
+# Protocol parameters (seed, outputs, roles, c_min, threshold candidates, bootstrap) are read from configs/protocol_v0_2.yaml.
+# Amended 2026-10-21 (M4b-0d, protocol proposal P3) BEFORE any gate was fitted: threshold candidates = distinct calibrated 9b
+# scores instead of the 0.001 grid, and a deterministic scoring path (rf.scoring, threshold.lock_contents). The feature-defining
+# blocks (output_dir, d1_keys_dir, d1_hash_manifest_sha256, roles, g1, g2) are byte-identical to the superseded file
+# 3705aea7bebd22e2b36dc389dcb16437cf259409407bbbe858ab71dac7f7b171 (archived: artifacts/protocol_history/gate_m4b_v0_2_3705aea7.yaml),
+# under which the features in artifacts/gate/v0_2 were extracted; so those features remain the features defined here.
+# Wording amended 2026-10-21 (M4b-0d pre-pin, with protocol proposal P4; superseded file e466724b..., archived): determinism
+# is stated as "within the pinned environment and seed"; t serialisation and lock environment made explicit. No formula changed.
+version: gate_m4b_v0_2
+output_dir: artifacts/gate/v0_2
+d1_keys_dir: artifacts/d1/v0_1/keys            # the ONLY D1 directory feature code may read (identifiers + masks)
+d1_hash_manifest_sha256: 001db6d1545ef529ebae7d98ce270bd8cbf97e7f35ab2c2d14b9fc2aa9a8668e
+
+roles:
+  feature_extraction: [B_gate, 9a_calibration, 9b_threshold]   # fold 10 only after the threshold lock (protocol §7)
+  fit: B_gate
+  calibration: 9a_calibration
+  threshold: 9b_threshold
+
+# --------------------------------------------------------------------------------------------------------------------
+# G1 mask geometry (protocol v0.1 §8 G1, unchanged). A function of the observed-lead set only. 15 columns.
+# --------------------------------------------------------------------------------------------------------------------
+g1:
+  lead_order: [I, II, III, AVR, AVL, AVF, V1, V2, V3, V4, V5, V6]
+  limb_leads: [I, II, III, AVR, AVL, AVF]
+  precordial_leads: [V1, V2, V3, V4, V5, V6]
+  columns:                                 # in this order
+    - g1_n_observed                        # number of observed leads
+    - g1_obs_<lead> for each lead in lead_order   # 1 = observed, 0 = missing (12 columns)
+    - g1_n_limb_observed
+    - g1_n_precordial_observed
+
+# --------------------------------------------------------------------------------------------------------------------
+# G2 observed-lead signal quality (protocol v0.1 §8 G2 list; signal stage fixed by owner decision O-A3). 15 columns.
+# --------------------------------------------------------------------------------------------------------------------
+g2:
+  signal: raw WFDB records500 physical signal (wfdb.rdrecord physical=True), mV, unfiltered   # O-A3
+  adc_note: PTB-XL 500 Hz headers give adc_gain 1000 (0.001 mV per step), 16-bit, baseline 0 (checked on a header)
+  fs_hz: 500
+  window_samples: [0, 4096]                # half-open [0, 4096): 8.192 s = span of the 2048-sample 250 Hz window at offset 0
+  dtype: float64
+  leads_used: observed leads only          # missing leads are never passed to any SQI function
+  per_lead:
+    ptp_mv: "max(x) - min(x) over the window (raw x, no mean removal); mV"
+    mean_removed: "x0 = x - mean(x) (constant detrend only, NOT linear, so baseline wander is kept)"   # [OWNER]
+    psd: "scipy.signal.periodogram(x0, fs=500, window='hann', nfft=4096, detrend=False, return_onesided=True, scaling='density')"   # [OWNER]: periodogram, Hann
+    total_power: "sum of P(f) over 0 < f <= 250 Hz (DC bin excluded)"
+    bw_frac: "sum of P(f) over 0 < f < 0.5 Hz, divided by total_power"
+    hf_frac: "sum of P(f) over f > 40 Hz, divided by total_power"
+    flat_frac: "fraction of the 4096 window samples that lie in a run of >= 50 consecutive samples (100 ms) whose successive absolute differences are all <= 0.0005 mV (half an ADC step, i.e. identical recorded values)"   # [OWNER]: 50 samples
+    kurtosis: "scipy.stats.kurtosis(x0, fisher=False, bias=True) (Pearson kurtosis; Gaussian = 3)"   # [OWNER]: Pearson, biased
+  undefined_values: "bw_frac, hf_frac and kurtosis are undefined when the lead is constant over the window (max(x) == min(x), i.e. total_power == 0 and var(x0) == 0 in exact arithmetic; tested on max == min so float residue of the mean removal cannot create spurious values). ptp_mv and flat_frac are always defined."
+  aggregation: "for each per-lead SQI: mean, min and max over the observed leads whose value is defined. If no observed lead has a defined value, the three aggregates are set to the sentinel -1.0 (outside every valid range)."   # [OWNER]: sentinel
+  non_finite_input: error                  # raw signals were verified finite in M2a; any non-finite value stops extraction
+  columns: "g2_<sqi>_<mean|min|max> for sqi in [ptp_mv, bw_frac, hf_frac, flat_frac, kurtosis] (15 columns, this order)"
+
+# --------------------------------------------------------------------------------------------------------------------
+# Methods (protocol v0.2): gates are fitted; comparators are computed, never used as gate features.
+# --------------------------------------------------------------------------------------------------------------------
+methods:
+  gate_A: {features: [G1], fitted: true}                 # identical to v0.1 M4
+  gate_B: {features: [G1, G2], fitted: true}
+  M3_signal_quality_only: {features: [G2], fitted: true}  # secondary ablation
+  M0_accept_all: {score: "constant; coverage 1.0"}
+  M2_uncertainty_only: {score: "e1_recon_margin_score = -min_k |p_rec_k - tau_k| with tau from the E1 run summary (higher = riskier)", fitted: false}
+  E_dir_margin: {score: "-min_k |q_k - tau_dir_k| with q = E_dir probabilities on (x_obs, m) and tau_dir from the E_dir run summary", fitted: false, use: "secondary label-based comparison only"}
+
+# --------------------------------------------------------------------------------------------------------------------
+# Random Forest, identical procedure for gate_A, gate_B and M3 (fit role B_gate only)
+# --------------------------------------------------------------------------------------------------------------------
+rf:
+  learner: sklearn.ensemble.RandomForestClassifier (scikit-learn 1.9.0)
+  fixed: {n_estimators: 500, criterion: gini, max_depth: null, bootstrap: true, class_weight: null, random_state: 20261030, n_jobs: 8}   # [OWNER]
+  grid: {min_samples_leaf: [10, 50, 200], max_features: [sqrt, 0.5]}   # 6 combinations [OWNER]
+  cv: "sklearn.model_selection.StratifiedGroupKFold(n_splits=5, shuffle=True, random_state=20261030); groups = patient_id (used only for splitting); stratified on D1"
+  selection_metric: "log loss of the pooled out-of-fold predicted probabilities, clipped to [1e-6, 1 - 1e-6]; lower is better"   # [OWNER]
+  tie_break: "metric equal within 1e-9: larger min_samples_leaf first, then max_features 'sqrt' before 0.5"
+  refit: "selected parameters on all B_gate rows"
+  score: "predict_proba[:, 1] (higher = riskier)"
+  scoring: "predict_proba is run with n_jobs = 1 (set after fitting; n_jobs above applies to fitting only, and the fitted trees did not depend on it in a check) so that scores are deterministic within the pinned environment and seed (same machine, OS, Python and library versions); with n_jobs > 1 the per-tree sums are added in thread-completion order and repeated calls differed in the last bit (observed with scikit-learn 1.9.0 on this machine). n_jobs = 1 alone does not establish bitwise reproducibility across operating systems, BLAS backends, library versions or hardware"
+  target: "D1 attached only through src.eval.d1.attach_d1_target (row_id, D1)"
+
+calibration:
+  role: 9a_calibration
+  rule: "Platt if 9a has >= protocol calibration.min_d1_events D1 events (9a has 339 D1 rows), else raw scores"
+  model: "sklearn LogisticRegression(penalty=None, solver='lbfgs', max_iter=1000)"
+  input: "z = logit(clip(score, 1e-6, 1 - 1e-6)) for RF scores; the raw score for M2 and E_dir_margin"   # [OWNER]: clip
+  target: "D1 for gates, M3 and M2; any-output label error of E_dir (vs PTB-XL labels at tau_dir) for E_dir_margin"
+
+threshold:
+  role: 9b_threshold
+  rule: "protocol v0.2 threshold block: t is chosen among the distinct float64 calibrated scores of the method on the 9b rows; accept if s <= t; minimise pooled accepted-case risk s.t. coverage >= c_min (0.80); tie-break lowest risk, highest coverage, smallest t (objective, constraint and tie-break as in protocol v0.1 §7; only the candidate set changed from the 0.001 grid)"
+  risk: "D1 for gates, M3 and M2; any-output label error for E_dir_margin"
+  lock_contents: "per method: t as a float64 serialised as repr(t) and float.hex(t) (float.fromhex returns the identical double), the 9b coverage and risk at t, the number of candidates, the SHA-256 of the 9b calibrated-score file, and the environment (OS, Python, numpy, scipy, scikit-learn versions); the fold-10 pathway runs in that pinned environment, recomputes the 9b calibrated scores with the locked models and requires bitwise equality before it scores fold 10"
+  lock_file: artifacts/locks/threshold_lock_v0_2.json

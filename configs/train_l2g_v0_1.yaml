@@ -1,0 +1,55 @@
+# Milestone 2c: controlled L2G reconstruction training.
+# Every value below must agree with docs/architecture_lock_v0_1.md (Section 2.3) and the pinned protocol
+# configs/protocol_v0_1.yaml; src/train/preflight.py checks this before training starts.
+# This file was written BEFORE the training run; the baselines and the adequacy gate are therefore pre-declared.
+
+# run01 (config SHA-256 7c9ff293...) was interrupted externally after 36 epochs (artifacts/runs/l2g_v0_1_run01/INTERRUPTED.json).
+# run02 repeats it with identical locked settings; run_name is the only change.
+run_name: l2g_v0_1_run02          # a new run must use a new name; existing run folders are never overwritten
+seed: 20261030                    # = protocol seed
+output_dir: artifacts/runs
+
+data:
+  train_role: A_fit               # fitting only (protocol Section 3)
+  validation_role: C_dev          # early stopping + checkpoint selection only
+  excluded_ecg_ids_from: protocol # targets.excluded_ecg_ids (ecg_id 12722, D-017)
+  train_window_offsets: [0, 452]  # AD-8: start- and end-aligned 2048-sample windows of each 10-s record
+  validation_window_offset: 0     # protocol evaluation window
+  validation_masks_per_record: 8  # = protocol d1.masks_per_record; masks from evaluation_combinations(seed, ecg_id, k)
+  cache_dir: "C:/ecg_cache/v0_1"  # filtered + resampled signals (outside OneDrive; derived data, re-creatable)
+
+model:
+  in_channels: 24                 # AD-1 mask conditioning
+
+optimizer:
+  generator:     {type: sgd, lr: 0.01,  momentum: 0.5, weight_decay: 0.0}   # lr PAPER, momentum CODE
+  discriminator: {type: sgd, lr: 0.001, momentum: 0.5, weight_decay: 0.0}   # lr PAPER, momentum CODE
+  discriminator_scheduler: {type: reduce_on_plateau, patience: 10}          # CODE
+
+training:
+  batch_size: 256                 # PAPER
+  max_epochs: 50                  # PAPER
+  adversarial_start_epoch: 10     # PAPER + CODE
+  alpha: 0.1                      # PAPER + CODE
+  vttd_crop: 400                  # CODE
+  training_masks: uniform_over_258_l2g_lead_sets   # AD-4, new draw per sample per epoch
+  shuffle: fixed_seed             # AD-10 (diverges from CODE shuffle=False)
+  checkpoint: best_so_far         # AD-11 (diverges from CODE previous-epoch rule)
+  early_stopping_patience: 10     # AD-12 (diverges from PAPER fixed 50 epochs)
+  # Selection metric = the training reconstruction loss evaluated on C_dev: 1 - SSIM(min-max(output), target),
+  # all 12 leads, no copy-through (lock Section 2.3). Missing-lead metrics are REPORTED, not used for selection.
+  selection_metric: val_one_minus_ssim_all_leads
+  mixed_precision: false          # lock: full precision until the baseline is validated
+  stop_on_non_finite_loss: true
+
+evaluation:
+  # Pre-declared non-learned baselines (same C_dev rows and masks as the model):
+  baselines: [B0_constant_half, B1_best_correlated_observed_lead]
+  bootstrap: {unit: patient, replicates: 10000, level: 0.95}
+  # Pre-declared adequacy gate for handing the reconstructor to downstream milestones:
+  #   G1 run finished without non-finite loss or OOM, and the best checkpoint reloads and reproduces its
+  #      logged validation selection loss within 1e-4;
+  #   G2 missing-lead SSIM: L2G minus B0 and L2G minus B1 both > 0 with the patient-bootstrap 95% CI above 0;
+  #   G3 missing-lead MSE:  L2G minus B0 and L2G minus B1 both < 0 with the patient-bootstrap 95% CI below 0;
+  #   G4 only A_fit used for fitting and C_dev for selection; no fold-9 or fold-10 record loaded.
+  adequacy_gate: [G1_integrity, G2_missing_ssim_beats_baselines, G3_missing_mse_beats_baselines, G4_no_leakage]

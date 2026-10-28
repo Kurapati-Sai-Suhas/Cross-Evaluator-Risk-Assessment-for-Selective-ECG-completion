@@ -1,0 +1,43 @@
+# Milestone 3a: direct reduced-lead classifier E_dir (protocol v0.1 Section 9; architecture lock v0.1 Section 2.4).
+# Written BEFORE E_dir training and before the E1 result was known (2026-10-20).
+# Protocol definition: "E1's architecture taking the 24-channel masked input (x_obs + mask) and predicting
+# CLBBB/CRBBB directly, trained on A_fit with the same mask distribution, selected on C_dev."
+# E_dir is a COMPARATOR, not a D1 evaluator: the E1/E2 eligibility rule (protocol Section 5) does not apply to it.
+# It gets the same pre-declared tuning budget as E1 (the same three attempts) so the comparison is not tilted.
+
+run_name: edir_resnet1d_v0_1_run02  # run01 interrupted externally (D-027); this rerun changes nothing else
+evaluator_id: E_dir
+seed: 20261030
+output_dir: artifacts/runs
+eligibility_applies: false          # comparator; eligibility is reported as not applicable
+
+model:
+  family: resnet1d_wang             # = E1's architecture
+  in_channels: 24                   # masked 12-lead signal + 12 mask channels (AD-1)
+  widths: [64, 128, 128]
+
+input: masked                       # x_obs = x * m, concatenated with m
+
+data:
+  train_role: A_fit
+  validation_role: C_dev
+  train_window_offsets: [0, 452]
+  validation_window_offset: 0
+  validation_masks_per_record: 8    # the protocol evaluation masks: evaluation_combinations(ecg_id, seed, 8)
+  cache_dir: "C:/ecg_cache/v0_1"
+  # training masks: a fresh uniform draw over the 258 L2G lead sets for every sample and epoch (same as G, AD-4)
+
+training:
+  batch_size: 128
+  max_epochs: 30
+  early_stopping_patience: 5
+  selection_metric: c_dev_macro_auroc   # over the 2,620 x 8 C_dev rows
+  loss: bce_with_logits_pos_weight
+  mixed_precision: false
+
+attempts:
+  - {id: 1, optimizer: adam, lr: 0.001,  weight_decay: 0.0,    seed: 20261030}
+  - {id: 2, optimizer: adam, lr: 0.0003, weight_decay: 0.0,    seed: 20261031}
+  - {id: 3, optimizer: adam, lr: 0.001,  weight_decay: 0.0001, seed: 20261032}
+
+operating_threshold: youden_on_C_dev   # used later for E_dir's own margin-based abstention (protocol Section 9)

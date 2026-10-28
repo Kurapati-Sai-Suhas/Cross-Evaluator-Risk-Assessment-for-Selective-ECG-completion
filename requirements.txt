@@ -1,0 +1,12 @@
+# Milestones 1-2a: metadata audit, split manifest, waveform loading and preprocessing.
+# No deep-learning library yet (PyTorch is added when the L2G generator is implemented).
+# Exact versions pinned so every teammate gets the same results.
+# Tested with Python 3.12.10 on Windows 11.
+numpy==2.4.4
+pandas==3.0.2
+PyYAML==6.0.3
+pytest==9.1.1
+scipy==1.18.1
+wfdb==4.3.1
+matplotlib==3.11.2      # training plots (Milestone 2c); already installed as a wfdb dependency
+scikit-learn==1.9.0     # tests only: independent reference for AUROC / average precision (Milestone 3a)

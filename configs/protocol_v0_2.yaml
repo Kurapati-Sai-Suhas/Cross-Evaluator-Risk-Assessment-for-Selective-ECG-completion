@@ -1,0 +1,249 @@
+# Evaluation protocol v0.2 = protocol v0.1 + the owner decisions of 2026-10-21 ONLY:
+#   O-A1 drop M1/G3 (scope reduction), Gate A = G1, Gate B = G1+G2, keep M3 (G2-only) as secondary ablation;
+#   O-A2 fixed-sequence testing H1 -> H2 (one-sided alpha 0.05), everything else secondary/descriptive;
+#   O-A3 G2 on raw 500 Hz WFDB observed leads (mV, samples [0, 4096)); O-A4 E2 transfer deferred; O-A5 E_dir cap kept.
+# PROPOSED. Approval and pinning are recorded ONLY in artifacts/locks/protocol_v0_2.lock.json (this file has no status
+# field), so the SHA-256 the owner approves is exactly the SHA-256 that is pinned. v0.1 stays pinned and unchanged.
+# Human-readable version with the v0.1 -> v0.2 diff: docs/evaluation_protocol_v0_2.md.
+# Proposal history (docs/protocol_v0_2_change_log.md; none was ever pinned):
+#   P1 b45a03b9382de9a629fe69ab939b69fb7c842dc203ab9b8ddd432ee234059138 (M4b-0);
+#   P2 cce1e70b19d34b32e59072db8076fbae53fd00bdcac255a36842f9979f0a7af7 (M4b-0 audit corrections F1-F4; bytes archived in
+#      artifacts/protocol_history/protocol_v0_2_P2_cce1e70b.yaml);
+#   P3 7a39901128afe1111b6e24bbd51af549abdfe390e8cc650fbcced4d88621e134 (M4b-0d): descriptive endpoints S-A..S-D, undefined-H1
+#      rule, threshold candidates = distinct 9b scores, one interval-based decision rule (bytes archived in
+#      artifacts/protocol_history/protocol_v0_2_P3_7a399011.yaml); Consensus audit verdict on P3: NOT READY;
+#   P4 option A e8f4aaadd30306e9179fe1162080b24b16c76ab6e29165df312cbd81adc79028 and option B
+#      eec4f4b769f6143278684f7d695d69846282ca305e86002262e1631eb556899e (M4b-0d-pp, 2026-10-21/22): S-A aggregates explicit,
+#      S-B/S-C overlap and type-switch reporting, reproducibility wording, decision-rule nature, threshold serialisation (bytes
+#      archived in artifacts/protocol_history/candidates/); Consensus verdict on that approval packet: REVISE;
+#   P5 this file (M4b-0d-pp2, 2026-10-23): P4 option B plus a machine-readable S-A sensitivity aggregate, an explicit rule for
+#      ineligible lead sets and a no-swap reporting rule; nothing else.
+version: "0.2"
+base_protocol: {file: configs/protocol_v0_1.yaml, sha256: 55a1ceb6ad4a2078f5b856752bd8c8dd9954ea2168e547760eb6529b8ba32b43}
+gate_preregistration: {file: configs/gate_m4b_v0_2.yaml, sha256: 80fdd7a4c7aec27005eeb84c93b47228923b86d2867ce1da540b12e0aa264690}
+feature_provenance: "the G1/G2 features in artifacts/gate/v0_2 were extracted under gate pre-registration 3705aea7bebd22e2b36dc389dcb16437cf259409407bbbe858ab71dac7f7b171 (archived byte-identical at artifacts/protocol_history/gate_m4b_v0_2_3705aea7.yaml). Its feature-defining blocks (output_dir, d1_keys_dir, d1_hash_manifest_sha256, roles, g1, g2) are identical, parsed and as text, to those of e466724b... (archived) and of the gate pre-registration above (tested). Proof by recomputation (artifacts/reports/m4b0d_feature_reuse_verification.json): the current code and config reproduce the stored B_gate, 9a and 9b feature files byte for byte (line endings normalised). M4b-1 checks: features' config_sha256 == 3705aea7..., the archive's hash == 3705aea7..., and block identity."
+seed: 20261030
+
+targets:                                   # unchanged from v0.1
+  primary_outputs: [CLBBB, CRBBB]
+  positive_min_likelihood: 0
+  incomplete_only_records: negative
+  excluded_ecg_ids: [12722]
+  sensitivity_analyses: [S1_add_IRBBB, S2_likelihood_100, S3_derived_families, S4_exclude_incomplete_negatives]
+
+d1:                                        # unchanged definition; scoring path and artifacts of M4a recorded
+  evaluator_threshold_rule: youden_on_C_dev
+  masks_per_record: 8
+  mask_assignment: evaluation_combinations(ecg_id, seed, k)   # argument order as in the code; RNG seeded with [seed, ecg_id]
+  roles: [B_gate, C_dev, 9a_calibration, 9b_threshold, test_fold10]
+  scoring_config: {file: configs/d1_generation_v0_1.yaml, sha256: f998aee1b2e0330eeeebf39874189e26b937be0b8a1b3bff26d926ba679fed6a}
+  artifacts_hash_manifest: {file: artifacts/d1/v0_1/hash_manifest.json, sha256: 001db6d1545ef529ebae7d98ce270bd8cbf97e7f35ab2c2d14b9fc2aa9a8668e}
+  directional_outputs: [D1_miss_CLBBB, D1_false_CLBBB, D1_miss_CRBBB, D1_false_CRBBB]   # secondary, descriptive only
+  fold10_rule: "only through fold10_pathway (below), after the locks exist; the M4a scoring_config itself is never re-run for fold 10 (its roles exclude test_fold10 and its output_dir already exists)"
+
+roles:                                     # unchanged from v0.1
+  fit: [A_fit]
+  model_selection: [C_dev]
+  gate_training: [B_gate]
+  calibration: [9a_calibration]
+  threshold_selection: [9b_threshold]
+  final_test: [test_fold10]
+
+uncertainty:                               # v0.1 + one interval-based decision rule, order-statistic intervals and the replicate stream
+  unit: patient
+  method: patient_cluster_bootstrap_percentile
+  replicates: 10000
+  two_sided_level: 0.95
+  one_sided_upper_quantile: 0.95
+  paired: same resampled patients for both arms of a contrast
+  nature: "a bootstrap-based empirical decision rule (asymptotic, first-order); it is not a finite-sample guarantee, a formal risk guarantee or a clinical-safety guarantee"
+  contrast: "delta = risk(method) - risk(comparator); the alternative of interest is delta < 0 (null delta >= 0); delta*_b is the uncentred replicate value"
+  order_statistics: "delta*_(1) <= ... <= delta*_(B) are the replicate values sorted ascending (+inf sorts last); every bootstrap percentile in this protocol is an order statistic of rank floor or ceil(q * (B + 1)), never an interpolated quantile"
+  decision_interval: "one-sided 95% percentile upper bound U = delta*_(k_U), k_U = ceil(0.95 * (B + 1)) = 9501 for B = 10000"
+  decision_rule: "reject the one-sided null (delta >= 0) iff U < 0, i.e. iff at most 499 of the 10000 replicates have delta* >= 0. This is the test obtained by inverting the one-sided percentile interval; it is the only decision rule. With B = 10000 it rejects exactly when the P2 rule (1 + #{delta* >= 0}) / (B + 1) < 0.05 did."
+  descriptive_interval: "two-sided 95% percentile interval [delta*_(k_L), delta*_(k_H)], k_L = floor(0.025 * (B + 1)) = 250, k_H = ceil(0.975 * (B + 1)) = 9751. Descriptive only: it can contain 0 when a hypothesis is rejected and is never used for a decision."
+  diagnostic_count: "n_nonneg = #{b : delta*_b >= 0} is reported with every contrast as a check of the decision rule; it is NOT a p-value, and no p-value is computed or reported"
+  undefined_replicate: "contrasts (H1, H2 and secondary contrasts): if a replicate leaves a method with zero accepted weight, delta*_b = +inf; it counts in n_nonneg (against rejection) and sorts last. Single-quantity descriptive endpoints (descriptive_endpoints): a replicate with a zero denominator is undefined, is excluded from that endpoint's interval (ranks computed from the R defined replicates), and the number of undefined replicates is reported (the v0.1 Section 4 rule for class-wise rates)"
+  replicate_stream: "rng = numpy.random.default_rng(seed); patients = the distinct patient_id of the evaluated rows sorted ascending (P patients); draws = rng.integers(0, P, size=(B, P)); the multiplicity of patient j in replicate b is the number of times j occurs in draws[b]; every row's w_i is its patient's multiplicity; replicate b is shared by H1, H2, every secondary contrast and every descriptive endpoint on the same rows"
+  v0_1_sensitivity_check: "the v0.1 Section 4 patient-level Clopper-Pearson bound is kept as a descriptive sensitivity check only and is never used for a decision"
+
+eligibility:                               # unchanged from v0.1
+  metric: auroc_patient_bootstrap_lower_bound
+  measured_on: C_dev
+  auroc_lower_bound_floor: 0.90
+  max_ci_half_width: 0.05
+  max_training_attempts: 3
+  on_failure: stop_and_report
+
+calibration:                               # unchanged rule; applies to gate_A, gate_B, M3, M2 (and E_dir_margin, label error)
+  method: platt
+  fit_on: 9a_calibration
+  min_d1_events: 20
+
+threshold:                                 # P3: candidate set changed (distinct 9b scores, not the 0.001 grid); objective, c_min and tie-break unchanged
+  candidates: "the distinct float64 values of the method's calibrated score on the 9b_threshold rows. They give every acceptance set that any threshold can produce on 9b; the former grid {0.000, 0.001, ..., 1.000} only reaches a subset of these sets and is no longer used"
+  accept_if: "score <= t"
+  objective: minimise_pooled_accepted_d1_rate
+  coverage: "row-weighted share of 9b record-mask rows with score <= t (w_i = 1)"
+  min_coverage: 0.80
+  secondary_coverages: [0.60, 0.70, 0.90]
+  tie_break: [lowest_risk, highest_coverage, smallest_t]   # distinct candidates give distinct 9b coverages; smallest_t places t on an observed 9b score
+  selected_on: 9b_threshold
+  protocol_change: "the observed-score candidate set replaces the 0.001 grid of v0.1 and of P1/P2; it is a protocol change that takes effect only if the owner approves this file's SHA-256"
+  deterministic_scoring: "calibrated scores are computed in float64 by the gate pre-registration's scoring path (rf.scoring: predict_proba with n_jobs = 1), which is deterministic within the pinned environment and seed; no cross-environment bitwise reproducibility is claimed. The lock stores t as repr(t) and float.hex(t) with the environment (gate pre-registration threshold.lock_contents), and the fold-10 pathway, run in that environment, verifies bitwise reproduction of the 9b scores before scoring fold 10"
+  fold10_coverage: "c_min constrains the 9b selection only; realised fold-10 coverage is reported as observed and may be slightly below 0.80"
+  lock_file: artifacts/locks/threshold_lock_v0_2.json
+  risk_by_method:                          # the risk minimised on 9b; the same target is used for Platt calibration on 9a
+    gate_A: D1
+    gate_B: D1
+    M3_signal_quality_only: D1
+    M2_uncertainty_only: D1
+    E_dir_margin: any_output_label_error   # secondary label-based comparison only (PTB-XL labels vs E_dir decisions at E_dir's own tau), as in gate_preregistration
+
+gate:
+  learner: random_forest
+  tuning: patient_grouped_5fold_cv_in_B_gate
+  allowed_feature_groups: [G1_mask_geometry, G2_observed_signal_quality]   # G3 removed (O-A1, scope reduction)
+  g2_signal_stage: raw_wfdb_500hz_observed_leads_mV_samples_0_to_4096      # O-A3; formulas in gate_preregistration
+  g2_signal_note: "'raw' means the PTB-XL records500 signals as distributed, without filtering by this project; upstream/device-side filtering is unverified. The word 'unfiltered' in gate_preregistration g2.signal has exactly this meaning (the g2 block is unchanged, so the features extracted under it stay valid)."
+  reference_invariance_test: required                                      # features must not change with missing leads
+  fold10_features: "test_fold10 G1/G2 features, M2 scores and E_dir margin scores only through fold10_pathway, with the pre-registered formulas unchanged"
+  forbidden_inputs:                        # v0.1 list, plus comparator scores and deferred feature families
+    - complete_reference_ecg
+    - true_reconstruction_error
+    - d1
+    - labels
+    - scp_codes
+    - report
+    - baseline_drift
+    - static_noise
+    - burst_noise
+    - electrodes_problems
+    - extra_beats
+    - pacemaker
+    - ecg_id
+    - patient_id
+    - strat_fold
+    - nurse
+    - site
+    - device
+    - recording_date
+    - e1_outputs_complete
+    - e2_outputs_complete
+    - e1_outputs_reconstruction
+    - e2_outputs_reconstruction
+    - e1_recon_margin_score                # M2 comparator score
+    - edir_outputs                         # E_dir comparator
+    - vttd_score
+    - g3_reconstruction_statistics         # dropped in v0.2
+    - lolo_features                        # Gate C deferred
+    - age
+    - sex
+  descriptive_endpoint_inputs: "every input of descriptive_endpoints except the calibrated score and the lead set (E1 decisions on x and x_hat, D1 and its directions, PTB-XL label bits) is reference-derived offline data covered by the list above (d1, labels, e1_outputs_complete, e1_outputs_reconstruction); none may be a gate input"
+
+methods:
+  gate_A: {features: [G1], role: primary comparator in H2; identical to v0.1 M4}
+  gate_B: {features: [G1, G2], role: primary method}
+  M0_accept_all: {role: primary comparator in H1}
+  M2_uncertainty_only: {role: secondary comparator, note: E1 on the reconstruction; comparator-only}
+  M3_signal_quality_only: {features: [G2], role: secondary ablation}
+  E_dir_direct_reduced_lead: {role: secondary label-based comparison, note: 30-epoch cap kept (O-A5)}
+  dropped: [M1_gate_G1_G2_G3]
+  deferred: [gate_C_LOLO, E2_transfer]     # O-A4: E2 not trained; transfer analysis not performed
+
+primary_analysis:
+  role: test_fold10                        # once, after artifacts/locks/threshold_lock_v0_2.json exists
+  procedure: fixed_sequence                # H2 is tested only if H1 is rejected; family-wise alpha 0.05
+  fixed_sequence_rule: "H1 is decided first. H2 is tested only if H1 is rejected; otherwise (including an undefined H1 point estimate) H2 makes no inferential claim and is at most reported descriptively. Reference implementation: src.eval.primary_decision.fixed_sequence (tested on synthetic inputs only)"
+  alpha_one_sided: 0.05
+  H1:
+    statement: "accepted-case D1 rate of gate_B at its 9b-locked threshold < overall D1 rate (M0)"
+    gate_B_risk: "R_B = sum_i w_i * 1[s_B,i <= t_B] * D1_i / sum_i w_i * 1[s_B,i <= t_B]"
+    m0_risk: "R_0 = sum_i w_i * D1_i / sum_i w_i"
+    delta: "R_B - R_0"
+    undefined_point_estimate: "if gate_B accepts no fold-10 row at t_B (sum_i 1[s_B,i <= t_B] = 0 with w_i = 1), R_B and delta are undefined: H1 is NOT rejected and H2 is not tested. The report states realised coverage 0, R_B and delta as 'undefined (no accepted row)', R_0, and the bootstrap result (every replicate then also has zero accepted weight, so every delta* = +inf, n_nonneg = B and U = +inf). No value is substituted."
+    report: [R_B, R_0, delta, realised coverage of gate_B, one-sided 95% upper bound U (decision interval), two-sided 95% interval (descriptive), n_nonneg (diagnostic count, not a p-value)]
+  H2:
+    statement: "selective D1 risk of gate_B < gate_A at exactly matched coverage c = 0.80 on fold 10"
+    estimand: "for each method: sort rows by calibrated score ascending; W* = c * sum_i w_i; accept whole tie groups (equal score) in order while cumulative weight <= W*; the next tie group g is accepted with fraction phi = (W* - W_before_g) / W_g applied to each of its rows; R(c) = sum_i a_i w_i D1_i / sum_i a_i w_i with a_i in {1, phi, 0}; the ranking and phi are recomputed inside every bootstrap replicate with that replicate's weights"
+    delta: "R_B(0.80) - R_A(0.80)"
+    report: [R_B(0.80), R_A(0.80), delta, one-sided 95% upper bound U (decision interval), two-sided 95% interval (descriptive), n_nonneg (diagnostic count, not a p-value)]
+  weights: "w_i = 1 for the point estimate; w_i = number of times row i's patient is drawn in a bootstrap replicate (uncertainty.replicate_stream)"
+  reject_rule: "reject iff U < 0 (uncertainty.decision_rule); a non-rejected H2 means no evidence of added value, not equivalence"
+
+secondary_descriptive:                     # no inferential claim
+  - gate_A vs M0 at locked thresholds
+  - gate_B vs M2 at locked thresholds
+  - gate_B vs gate_A at locked thresholds (realised coverages differ)
+  - M3 ablation
+  - E_dir label-based comparison (margin-based abstention at c_min)
+  - directional D1 among accepted rows
+  - class-wise accepted-case D1; class-wise coverage is defined exactly by descriptive_endpoints S_B
+  - results by number of observed leads
+  - secondary coverages 0.60, 0.70, 0.90
+  - risk-coverage curves and AURC
+  - calibration reliability (Brier, reliability diagram) on 9b and fold 10
+  - descriptive_endpoints S-A to S-D (block below)
+
+descriptive_endpoints:                     # P3. Prespecified, descriptive: NOT gate features, NOT models, NOT hypothesis tests, no alpha spent
+  when: "computed only in the authorised single fold-10 evaluation (M5), from fold10_pathway outputs; not before, and never used to choose anything"
+  methods: [gate_A, gate_B, M3_signal_quality_only, M2_uncertainty_only]   # S-A; S-B, S-C and S-D also report M0_accept_all as the reference
+  operating_points:
+    locked: "a_i = 1[s_i <= t_m], the method's 9b-locked threshold (deployment result; realised coverage reported)"
+    c80: "a_i in {1, phi, 0} from primary_analysis.H2.estimand with c = 0.80, recomputed in every replicate (ranking estimand, not a deployable threshold)"
+    reporting: "S-B, S-C and S-D are reported at both operating points, in separate tables; S-A is threshold-free"
+  notation: "rows are fold-10 record-mask rows; w_i weights as in primary_analysis.weights; s_i the method's calibrated score; lead set = mask_id (one of the 258 observed-lead sets); zf_y,i and zr_y,i = E1 decisions 1[p >= tau_y] on x and on x_hat (columns z_full_<y>, z_rec_<y>); l_y,i = frozen PTB-XL label bit under targets (column y_<y>); y in targets.primary_outputs; B_i = max_y zf_y,i"
+  S_A_within_lead_set_concordance:
+    stratum_concordance: "for each exact lead set s (mask_id): c_s = sum_{i in P_s} sum_{j in N_s} w_i w_j K(s_i, s_j) / (W_P,s W_N,s) with K(u, v) = 1[u > v] + 0.5 * 1[u == v]; P_s and N_s = rows of s with D1 = 1 and D1 = 0; W_P,s and W_N,s their summed weights. s is eligible only if W_P,s > 0 and W_N,s > 0; otherwise c_s is undefined"
+    aggregate_pair_weighted: "C_pair = sum_s W_P,s W_N,s c_s / sum_s W_P,s W_N,s over eligible s (= all within-lead-set pairs pooled): the probability that, for a random D1 / non-D1 pair from the same lead set, the D1 row has the higher score"
+    aggregate_stratum_mean: "C_mean = mean of c_s over eligible s (each eligible lead set weighs equally): the average within-configuration concordance"
+    headline: stratum_mean   # C_mean is the headline S-A aggregate; C_pair is the prespecified sensitivity (key 'sensitivity')
+    headline_rationale: "every eligible lead set weighs equally, so C_mean answers an average-configuration question: within a typical lead configuration, how often does the score rank a D1 row above a non-D1 row? C_pair answers an average-pair question: for a random D1 / non-D1 pair from the same lead set, how often is the D1 row ranked higher? C_pair is reported beside C_mean because the stratum mean gives full weight to lead sets with a single D1 row (56 of 212 eligible lead sets in B_gate) and its eligible set changes between bootstrap replicates (artifacts/reports/m4b0d_sa_strata_profile.json). This is a methodological choice of estimand, not evidence that any gate works"
+    sensitivity: pair_weighted
+    reporting_rule: "both aggregates are always reported, each under its own name (C_mean, C_pair) with its eligible-lead-set and comparable-pair counts; the headline and sensitivity roles are fixed by this file and are never exchanged after any result is seen; any other choice requires a new protocol version"
+    ineligible_strata: "a lead set without both a D1 = 1 and a D1 = 0 row (or with zero weight in either class in a replicate) has undefined c_s; it enters neither aggregate, is never imputed, and is counted as only-D1 or only-non-D1"
+    rows: "all evaluated rows (no operating point)"
+    ties: "exact float64 equality of calibrated scores; a tied pair counts 0.5"
+    undefined: "no eligible lead set: 'not estimable' for both aggregates"
+    also_reported: "both aggregates; C_unstratified (all rows in one stratum, for reference); lead sets present, eligible, only-D1 and only-non-D1; comparable pairs; per replicate the eligible count"
+    gate_A_identity: "G1 is a function of the observed-lead set (mask_id <-> G1 is one-to-one on the extracted features, tested), so gate_A's calibrated score is constant within a lead set (within one deterministic scoring call); every within-lead-set pair is tied, c_s(gate_A) = 0.5 in every eligible lead set and both aggregates equal 0.5 exactly whenever defined, in the point estimate and in every replicate. Nothing is asserted for ineligible lead sets. Any other value is an implementation error and stops the analysis."
+  S_B_bbb_positive_coverage:
+    e1_called: "Cov_E1_y = sum_i a_i w_i zf_y,i / sum_i w_i zf_y,i for y = CLBBB and y = CRBBB separately; Cov_E1_any uses B_i = max_y zf_y,i; Cov_E1_both uses min_y zf_y,i"
+    label_positive: "Cov_lab_y = sum_i a_i w_i l_y,i / sum_i w_i l_y,i per output; Cov_lab_any uses max_y l_y,i; Cov_lab_both uses min_y l_y,i"
+    denominator: "record-mask rows, released or not; zf and l are record-level, so a record enters once per mask (8 times); every numerator and denominator is reported"
+    overlap: "a row positive for both outputs counts once in each per-output denominator and once in the 'any' denominator; such rows are also reported on their own ('both')"
+    reference: "the method's overall coverage sum_i a_i w_i / sum_i w_i at the same operating point, reported beside it"
+  S_C_bbb_call_preservation:
+    per_output: "Pres_y = sum_i a_i w_i zf_y,i zr_y,i / sum_i a_i w_i zf_y,i (= 1 - the released D1_miss_y share among released rows called y on x); numerator and denominator reported"
+    any_bbb: "Pres_any = sum_i a_i w_i B_i K_i / sum_i a_i w_i B_i with K_i = 1 iff every output called on x is still called on x_hat"
+    both_outputs_change: "a row enters the denominator of every output it is called for on x; a lost call counts against that output whatever happens to the other output; a call gained on x_hat (D1_false) is not a preservation failure (reported by directional D1)"
+    reported_separately: "never only inside 'any': (i) released rows called for BOTH outputs on x, split into kept both, lost only CLBBB, lost only CRBBB, lost both; (ii) released type switches by direction: CLBBB lost while CRBBB gained, and CRBBB lost while CLBBB gained"
+    meaning: "frozen-evaluator call preservation, not diagnostic correctness or clinical truth"
+  S_D_label_agreement_flips:
+    per_output: "Worse_y = 1[zf_y = l_y and zr_y != l_y]; Corr_y = 1[zf_y != l_y and zr_y = l_y]; for every row Worse_y + Corr_y = D1_y"
+    any_output: "D2 = max_y Worse_y (label-worsening); C2 = max_y Corr_y (corrective); mixed = D2 * C2"
+    rates: "among released rows, rate(X) = sum_i a_i w_i X_i / sum_i a_i w_i for X in D2, C2, mixed, Worse_y, Corr_y; Worse_y is also split into lost label-positive calls (l_y = 1) and created false calls (l_y = 0)"
+    meaning: "dataset-label agreement analysis, descriptive only; PTB-XL labels are not adjudicated clinical truth; neither D1 nor S-D is clinical harm"
+  zero_denominator: "'not estimable', never 0 (also for a method that releases no row)"
+  uncertainty: "same replicate stream; two-sided 95% descriptive interval by order statistics; undefined replicates per uncertainty.undefined_replicate; no hypothesis test, no p-value"
+  input_columns: "offline-label schema of M4a (artifacts/d1/v0_1/offline_labels/*_OFFLINE_d1_labels.csv): row_id, D1, and per output y_<y>, z_full_<y>, z_rec_<y>, D1_miss_<y>, D1_false_<y>; keys: mask_id, patient_id; calibrated scores of the locked models. All exist for B_gate, 9a and 9b; fold10_pathway must write the same columns"
+
+fold10_pathway:                            # F2 of the M4b-0 audit. NOT implemented; must be implemented and tested before M5.
+  status: not_implemented                  # the current D1 generator and feature extractor refuse test_fold10 by design
+  precondition: "artifacts/locks/protocol_v0_2.lock.json and artifacts/locks/threshold_lock_v0_2.json exist and verify, and the owner has authorised fold-10 evaluation"
+  implementation: "a separately reviewed and tested code path, implemented after the locks exist and before M5; the existing refusals stay in place for every other code path"
+  configs: "new role-specific configs for test_fold10 only: D1 uses the scoring_config settings unchanged (scoring block, masks, window, tau, boundary_eps) with roles [test_fold10] and a new output_dir; features use the gate_preregistration g1/g2 formulas unchanged with a new output_dir; nothing is written into existing artifact directories"
+  outputs: "fold-10 D1 targets with the full M4a offline-label column schema (descriptive_endpoints.input_columns) and keys, G1/G2 features, M2 scores and E_dir margin scores, each with a hash manifest"
+  frozen_inputs: "G v0.1, E1 v0.1 and its stored tau, E_dir, and the gate models, calibrators and thresholds recorded in threshold_lock_v0_2.json, plus gate_preregistration and scoring_config; every hash verified before scoring"
+  checks_before_evaluation: [frozen hashes and both locks, bitwise reproduction of the locked 9b calibrated scores, protocol masks (evaluation_combinations), exact feature whitelist and column order per method, row_id alignment across D1 keys, D1 labels, features and comparator scores, roles and patient disjointness, no fold-10 artifact older than the threshold lock]
+  no_choices_on_fold10: "fold-10 data are never used to choose any model, feature, threshold, calibration, rule or analysis"
+  pre_authorisation_tests: "synthetic fixtures and non-fold-10 roles only: tests must show refusal without valid locks and correct outputs on fixtures, without opening any fold-10 record"
+
+limitations_added:
+  - "E2 transfer not performed (E2 not trained); the gate's evaluator-agnosticism is untested"
+  - "E_dir attempts reached the 30-epoch cap while improving; the E_dir comparison may understate E_dir"
+  - "G3 reconstruction statistics and LOLO features were not evaluated; no claim about them"
+  - "PTB-XL 500 Hz signals are used as distributed, without filtering by this project; upstream/device-side filtering is unverified"
+  - "percentile bootstrap intervals are first-order accurate; with about 4% D1 and clustered rows their coverage is approximate"
+  - "S-A to S-D are descriptive; fold-10 BBB-positive counts are small, so their intervals are wide"
+  - "scores and thresholds are deterministic within the pinned environment and seed; bitwise reproducibility across operating systems, BLAS backends, library versions or hardware is not claimed"

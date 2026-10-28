@@ -1,0 +1,104 @@
+# Evaluation protocol v0.1: machine-readable mirror of docs/evaluation_protocol_v0_1.md (decision D-020).
+# STATUS: APPROVED by the project owner on 2026-10-20 with all recommended defaults (O-1 to O-6).
+# This file is pinned by SHA-256 in artifacts/locks/protocol_v0_1.lock.json and is read-only.
+# Any change = a new version (protocol_v0_2.yaml) with a decision-log entry. Never edit this file.
+# Later code must READ these values from here; never re-type them in scripts.
+version: "0.1"
+status: APPROVED
+approved_on: "2026-10-20"
+approval_note: "Owner approved protocol v0.1 and architecture lock v0.1 with all recommended defaults (O-1 c_min 0.80, O-2 AUROC lower bound 0.90 and half-width 0.05, O-3 three attempts, O-4 ResNet/Inception families, O-5 include E_dir and M4, O-6 shuffling and best-so-far checkpoint)."
+seed: 20261030
+
+targets:
+  primary_outputs: [CLBBB, CRBBB]          # two independent sigmoid outputs (D-010)
+  positive_min_likelihood: 0               # code listed at any likelihood
+  incomplete_only_records: negative        # ILBBB/IRBBB-only records are negatives
+  excluded_ecg_ids: [12722]                # flat V5 (D-017)
+  sensitivity_analyses: [S1_add_IRBBB, S2_likelihood_100, S3_derived_families, S4_exclude_incomplete_negatives]
+
+d1:
+  evaluator_threshold_rule: youden_on_C_dev
+  masks_per_record: 8
+  mask_assignment: evaluation_combinations(seed, ecg_id, k)
+  roles: [B_gate, C_dev, 9a_calibration, 9b_threshold, test_fold10]
+
+roles:                                     # each frozen role has exactly one purpose
+  fit: [A_fit]
+  model_selection: [C_dev]                 # early stopping, E1/E2 thresholds, eligibility
+  gate_training: [B_gate]
+  calibration: [9a_calibration]
+  threshold_selection: [9b_threshold]
+  final_test: [test_fold10]
+
+uncertainty:
+  unit: patient
+  method: patient_cluster_bootstrap_percentile
+  replicates: 10000
+  two_sided_level: 0.95
+  one_sided_upper_quantile: 0.95
+
+eligibility:
+  metric: auroc_patient_bootstrap_lower_bound
+  measured_on: C_dev
+  auroc_lower_bound_floor: 0.90            # OWNER
+  max_ci_half_width: 0.05                  # OWNER
+  max_training_attempts: 3                 # OWNER
+  on_failure: stop_and_report
+
+calibration:
+  method: platt
+  fit_on: 9a_calibration
+  min_d1_events: 20                        # below this, skip calibration and use raw scores
+
+threshold:
+  grid_start: 0.0
+  grid_stop: 1.0
+  grid_step: 0.001
+  accept_if: "score <= t"
+  objective: minimise_pooled_accepted_d1_rate
+  min_coverage: 0.80                       # OWNER
+  secondary_coverages: [0.60, 0.70, 0.90]
+  tie_break: [lowest_risk, highest_coverage, smallest_t]
+  selected_on: 9b_threshold
+  lock_file: artifacts/locks/threshold_lock_v0_1.json
+
+gate:
+  learner: random_forest
+  tuning: patient_grouped_5fold_cv_in_B_gate
+  allowed_feature_groups: [G1_mask_geometry, G2_observed_signal_quality, G3_reconstruction_statistics]
+  forbidden_inputs:
+    - complete_reference_ecg
+    - true_reconstruction_error
+    - d1
+    - labels
+    - scp_codes
+    - report
+    - baseline_drift
+    - static_noise
+    - burst_noise
+    - electrodes_problems
+    - extra_beats
+    - pacemaker
+    - ecg_id
+    - patient_id
+    - strat_fold
+    - nurse
+    - site
+    - device
+    - recording_date
+    - e1_outputs_complete
+    - e2_outputs_complete
+    - e1_outputs_reconstruction            # used only by the uncertainty-only baseline
+    - e2_outputs_reconstruction
+    - vttd_score                           # VTTD needs the real lead: not inference-safe
+    - age                                  # available at inference, excluded from the primary gate
+    - sex
+
+comparisons:
+  methods: [M0_accept_all, M1_gate, M2_uncertainty_only, M3_signal_quality_only, M4_mask_only, E_dir_direct_reduced_lead]
+  primary_contrasts:
+    - [M1_gate, M0_accept_all]
+    - [M1_gate, M2_uncertainty_only]
+    - [M1_gate, M3_signal_quality_only]
+  multiplicity: holm
+  alpha: 0.05

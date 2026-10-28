@@ -1,0 +1,91 @@
+# Milestone 1 configuration: PTB-XL metadata audit + patient-disjoint split manifest.
+# All paths are relative to the repository root (the folder that contains README.md).
+# Change values here instead of editing the Python scripts.
+
+dataset:
+  name: PTB-XL
+  version: "1.0.3"
+  # Official PhysioNet file directory for this exact version.
+  base_url: "https://physionet.org/files/ptb-xl/1.0.3/"
+  raw_dir: data/raw/ptbxl
+  database_csv: data/raw/ptbxl/ptbxl_database.csv
+  statements_csv: data/raw/ptbxl/scp_statements.csv
+  # Official SHA-256 checksums published by PhysioNet for this version.
+  checksums_file: data/raw/ptbxl/SHA256SUMS.txt
+  # Full v1.0.3 release (waveforms) downloaded with AWS CLI from the public PhysioNet bucket
+  # (decision D-013). Kept outside OneDrive because it is ~3 GB. A different machine can
+  # override this without editing the file:  $env:PTBXL_ROOT = "D:\some\folder"
+  waveform_root: "C:/PTB-XL"
+
+targets:
+  # The four PTB-XL bundle-branch-block statements. They are audited SEPARATELY.
+  # Complete and incomplete subtypes are never merged by the audit code.
+  codes: [CLBBB, ILBBB, CRBBB, IRBBB]
+  # Record/patient counts are reported for each threshold below.
+  # A code counts as present when its scp_codes likelihood is >= threshold.
+  # PhysioNet: "likelihood is set to 0 if unknown", so threshold 0 = "code listed at all".
+  likelihood_thresholds: [0, 50, 100]
+
+# Approved diagnostic target: decision D-010, approved 2026-10-19 (docs/decision_log.md).
+# Not used by Milestone 1 code; recorded here so Milestone 3 (E1/E2) reads one source of truth.
+diagnostic_target:
+  # Two independent binary outputs (two sigmoids, not a softmax). Codes are not merged.
+  primary_outputs: [CLBBB, CRBBB]
+  # A record is positive for an output if the code is listed at any likelihood.
+  primary_min_likelihood: 0
+  # D1 = 1 if the thresholded decision of ANY primary output differs between the
+  # complete ECG and its reconstruction (evaluator-relative disagreement, not clinical harm).
+  disagreement_outputs: [CLBBB, CRBBB]
+  # Records whose only BBB code is ILBBB or IRBBB stay in every role as negatives.
+  incomplete_only_records: negative
+  no_output: [ILBBB]
+  # Pre-declared secondary analyses; they never replace the primary target.
+  sensitivity_analyses:
+    S1_add_IRBBB_output: [CLBBB, CRBBB, IRBBB]
+    S2_min_likelihood: 100
+    S3_derived_families:
+      LBBB_family: [CLBBB, ILBBB]
+      RBBB_family: [CRBBB, IRBBB]
+
+audit:
+  report_dir: artifacts/reports
+  # How many other SCP codes to list per BBB code in the co-occurrence report.
+  top_k_cooccurring_codes: 15
+  # Folds whose label counts may inform design decisions. Fold 10 counts are
+  # reported for completeness only and must not drive any decision.
+  decision_folds: [1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+split:
+  # Fixed seed so that anyone re-running the script gets the identical manifest.
+  seed: 20261030
+  manifest_dir: artifacts/manifests
+  manifest_name: split_manifest_v0_draft
+  # Frozen copy written by src/data/freeze_split_manifest.py (decisions D-009, D-012).
+  # Later milestones must load ONLY the frozen manifest.
+  frozen_manifest_name: split_manifest_v1_frozen
+  # SHA-256 of the frozen CSV, pinned after freezing on 2026-10-19 (D-012).
+  # Loaders refuse any other file.
+  frozen_manifest_sha256: 898d0ac707cf86ec9201eb4d3a9d97a49e8b84767374313b01d1a5996f42b83b
+  test_fold: 10
+  fold9: 9
+  development_folds: [1, 2, 3, 4, 5, 6, 7, 8]
+  # Patient-level proportions inside folds 1-8 (must sum to 1.0).
+  #   A_fit  : fit the L2G-derived reconstructor and the evaluators E1/E2
+  #   B_gate : out-of-sample E1 disagreement labels (D1) + risk-gate training
+  #   C_dev  : development-only sanity checks
+  development_roles:
+    A_fit: 0.70
+    B_gate: 0.15
+    C_dev: 0.15
+  # Patient-level proportions inside fold 9 (must sum to 1.0).
+  #   9a_calibration : optional risk-score calibration
+  #   9b_threshold   : select and lock the accept/abstain threshold
+  fold9_roles:
+    9a_calibration: 0.50
+    9b_threshold: 0.50
+  # Role for every fold-10 record. Fold 10 is never shuffled or stratified.
+  test_role: test_fold10
+  # Stratification flag: a patient is "positive" for a code if ANY of their
+  # records lists it with likelihood >= this value. Used only to balance rare
+  # labels across roles; it does NOT define the diagnostic target.
+  stratify_min_likelihood: 0

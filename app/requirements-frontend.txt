@@ -1,0 +1,10 @@
+# Frontend (Streamlit user interface) environment: install into a SEPARATE virtual environment (.venv-frontend), so the
+# backend's pinned research environment (.venv) is never changed. The frontend holds no model code; it only calls the
+# local backend over HTTP. Versions read on 2026-10-28 from the Python 3.12.10 environment that ran the verified demo.
+#   python -m venv .venv-frontend
+#   .\.venv-frontend\Scripts\python.exe -m pip install -r app\requirements-frontend.txt
+streamlit==1.58.0
+numpy==2.4.4
+pandas==3.0.2
+matplotlib==3.10.9
+pytest==9.1.1

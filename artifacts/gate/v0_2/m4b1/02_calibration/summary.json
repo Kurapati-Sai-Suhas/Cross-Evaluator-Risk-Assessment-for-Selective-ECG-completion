@@ -1,0 +1,168 @@
+{
+  "stage": "02 calibrate",
+  "role": "9a_calibration",
+  "rows": 8648,
+  "d1_rows": 339,
+  "rule": "Platt",
+  "methods": {
+    "gate_A": {
+      "input": "logit(clip(score, 1e-6, 1 - 1e-6))",
+      "coef": "0x1.d4ac492d68b81p-1",
+      "intercept": "-0x1.69f14456d1606p-4",
+      "coef_repr": "0.9153769367152195",
+      "intercept_repr": "-0.08836485571836059",
+      "n_iter": 12,
+      "calibrator": {
+        "path": "artifacts/gate/v0_2/m4b1/02_calibration/calibrator_gate_A.joblib",
+        "sha256": "578dde3a706741ea87b0fda3f3ab005b0702c1d4c2c5d36d26c8eff499a38750"
+      },
+      "brier_9a_descriptive": 0.03708215527076792,
+      "mean_calibrated_9a": 0.03922458370852102,
+      "d1_rate_9a": 0.03919981498612396
+    },
+    "gate_B": {
+      "input": "logit(clip(score, 1e-6, 1 - 1e-6))",
+      "coef": "0x1.26fec0617bdf0p+0",
+      "intercept": "0x1.0704e69b110a0p-1",
+      "coef_repr": "1.1523246992109044",
+      "intercept_repr": "0.5137092651643975",
+      "n_iter": 8,
+      "calibrator": {
+        "path": "artifacts/gate/v0_2/m4b1/02_calibration/calibrator_gate_B.joblib",
+        "sha256": "341ba86a3e2b58c287524ad95ab57a2e535be694e4e9018f987e685c177b45ca"
+      },
+      "brier_9a_descriptive": 0.033885046113341775,
+      "mean_calibrated_9a": 0.03925956529945604,
+      "d1_rate_9a": 0.03919981498612396
+    },
+    "M3_signal_quality_only": {
+      "input": "logit(clip(score, 1e-6, 1 - 1e-6))",
+      "coef": "0x1.10c69b7a3e7e9p+0",
+      "intercept": "0x1.271b782d97b21p-2",
+      "coef_repr": "1.065530507416492",
+      "intercept_repr": "0.28819072511935145",
+      "n_iter": 11,
+      "calibrator": {
+        "path": "artifacts/gate/v0_2/m4b1/02_calibration/calibrator_M3_signal_quality_only.joblib",
+        "sha256": "4e3f54b939c71e21de96fa4f80d1c7fa31b405aecb11a3700b796b411b60ef35"
+      },
+      "brier_9a_descriptive": 0.03410945580567261,
+      "mean_calibrated_9a": 0.039205804435034866,
+      "d1_rate_9a": 0.03919981498612396
+    },
+    "M2_uncertainty_only": {
+      "input": "raw score",
+      "coef": "0x1.138e1e629164ep+4",
+      "intercept": "0x1.96ec47353d38fp+0",
+      "coef_repr": "17.222196946173703",
+      "intercept_repr": "1.5895428185442346",
+      "n_iter": 15,
+      "calibrator": {
+        "path": "artifacts/gate/v0_2/m4b1/02_calibration/calibrator_M2_uncertainty_only.joblib",
+        "sha256": "7f17da1bbef97304ede584af52365fdc6a5427f0ddd06ef7e68a5687df8fbeb1"
+      },
+      "brier_9a_descriptive": 0.03217470064937396,
+      "mean_calibrated_9a": 0.03910891641717245,
+      "d1_rate_9a": 0.03919981498612396
+    }
+  },
+  "fit_summary_sha256": "46a7b65d38459d11c2a536b4a53940911f2a75f91bcca467d8e2cafad11c1200",
+  "created_utc": "2026-10-24T07:58:49+00:00",
+  "authorisation": "owner, 2026-10-24: \"I authorise M4b-1 stages 01-05: Gate A/B patient-grouped CV on B_gate (M3 optional), Platt on 9a only, threshold selection and lock on 9b only, fold-10/M5 build and dry-run on synthetic/9b data only. Fold 10 stays sealed until I separately authorise the final run.\"",
+  "preflight_checks": [
+    {
+      "check": "protocol_v0_2_pinned",
+      "status": "PASS",
+      "detail": "38ad0a8669015b442bf80dac35438d7336c3da9bfca4f7804442b95fe5260773"
+    },
+    {
+      "check": "gate_preregistration_locked",
+      "status": "PASS",
+      "detail": "80fdd7a4c7aec27005eeb84c93b47228923b86d2867ce1da540b12e0aa264690"
+    },
+    {
+      "check": "features_config_and_archive",
+      "status": "PASS",
+      "detail": "3705aea7bebd22e2b36dc389dcb16437cf259409407bbbe858ab71dac7f7b171"
+    },
+    {
+      "check": "feature_blocks_identical",
+      "status": "PASS",
+      "detail": [
+        "output_dir",
+        "d1_keys_dir",
+        "d1_hash_manifest_sha256",
+        "roles",
+        "g1",
+        "g2"
+      ]
+    },
+    {
+      "check": "feature_columns_as_extracted",
+      "status": "PASS",
+      "detail": "30 columns"
+    },
+    {
+      "check": "hash_9a_calibration_features.csv",
+      "status": "PASS",
+      "detail": "1daa0d13c94fe3103fb4be7078422e709db9ad6eb750eda9b071b04f709e802b"
+    },
+    {
+      "check": "hash_9a_calibration_OFFLINE_d1_labels.csv",
+      "status": "PASS",
+      "detail": "cc3fa4e40ae85328e97e2a1272d91eb04f0044e7dac56f72515291c4e96ff58d"
+    },
+    {
+      "check": "hash_9a_calibration_OFFLINE_d1_labels.csv",
+      "status": "PASS",
+      "detail": "cc3fa4e40ae85328e97e2a1272d91eb04f0044e7dac56f72515291c4e96ff58d"
+    },
+    {
+      "check": "hash_9a_calibration_OFFLINE_d1_labels.csv",
+      "status": "PASS",
+      "detail": "cc3fa4e40ae85328e97e2a1272d91eb04f0044e7dac56f72515291c4e96ff58d"
+    },
+    {
+      "check": "hash_9a_calibration_M2_e1_recon_margin.csv",
+      "status": "PASS",
+      "detail": "c063b70b27abb77ad50d898f4bc891635237f6e51c817b8ca346874aade58dd4"
+    },
+    {
+      "check": "platt_rule",
+      "status": "PASS",
+      "detail": "339 D1 rows on 9a >= 20"
+    }
+  ],
+  "code_tree_sha256": "3a67b79214613e9f71e6d8ab963651568550de64c5e94a5d439318b0163fa8c6",
+  "environment": {
+    "os": "Windows-11-10.0.26300-SP0",
+    "python": "3.12.10",
+    "packages": {
+      "numpy": "2.4.4",
+      "pandas": "3.0.2",
+      "scipy": "1.18.1",
+      "wfdb": "4.3.1",
+      "PyYAML": "6.0.3",
+      "pytest": "9.1.1",
+      "torch": "2.11.0+cu128",
+      "matplotlib": "3.11.2",
+      "scikit-learn": "1.9.0",
+      "joblib": "1.6.0"
+    },
+    "torch_cuda_build": "12.8",
+    "cudnn": 91900,
+    "cuda_available": true,
+    "gpu": "NVIDIA GeForce RTX 5050 Laptop GPU",
+    "gpu_capability": "12.0",
+    "gpu_total_memory_MiB": 8124,
+    "nvidia_driver": "621.01"
+  },
+  "fold10_loaded": false,
+  "files": {
+    "artifacts/gate/v0_2/m4b1/02_calibration/9a_scores.csv": "113d2fa3794879f4d631e0d65a0c58539b8eb5601549a8cd0872899c14cab274",
+    "artifacts/gate/v0_2/m4b1/02_calibration/calibrator_gate_A.joblib": "578dde3a706741ea87b0fda3f3ab005b0702c1d4c2c5d36d26c8eff499a38750",
+    "artifacts/gate/v0_2/m4b1/02_calibration/calibrator_gate_B.joblib": "341ba86a3e2b58c287524ad95ab57a2e535be694e4e9018f987e685c177b45ca",
+    "artifacts/gate/v0_2/m4b1/02_calibration/calibrator_M2_uncertainty_only.joblib": "7f17da1bbef97304ede584af52365fdc6a5427f0ddd06ef7e68a5687df8fbeb1",
+    "artifacts/gate/v0_2/m4b1/02_calibration/calibrator_M3_signal_quality_only.joblib": "4e3f54b939c71e21de96fa4f80d1c7fa31b405aecb11a3700b796b411b60ef35"
+  }
+}

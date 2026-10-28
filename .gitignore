@@ -1,0 +1,53 @@
+# Local Python environments (create them yourself; see README.md)
+.venv/
+.venv-*/
+venv/
+
+# Python caches
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Secrets and local settings: never commit them
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx
+credentials*
+secrets*
+
+# Datasets and patient recordings: never commit them (PTB-XL, CPSC 2018 or any real ECG)
+/data/
+*.hea
+*.dat
+*.mat
+*.edf
+*.wfdb
+
+# Protected research artifacts: never part of this repository
+artifacts/m5/
+artifacts/authorisations/
+artifacts/d1/
+artifacts/manifests/
+artifacts/reports/
+
+# Model runs: only the frozen reconstructor G v0.1 is distributed
+artifacts/runs/*
+!artifacts/runs/l2g_v0_1_run02/
+artifacts/runs/l2g_v0_1_run02/*
+!artifacts/runs/l2g_v0_1_run02/best.pt
+
+# Demo outputs and logs
+demo_outputs/
+demo/examples/
+demo/example_outputs/
+*.log
+
+# Editor / OS / tool settings
+.vscode/
+.idea/
+.claude/
+Thumbs.db
+desktop.ini
