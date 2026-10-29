@@ -18,7 +18,7 @@
    "sha256": "d515875a7783be5a54934001e13b182ff4f75a5e35554f0e9590d5a1c602bb3b",
    "expected_input": "ECGen(in_channels=24): float32 (batch, 24, 2048) = 12 leads at 250 Hz, per-lead min-max to [0, 1], missing leads zeroed, plus 12 lead-mask channels; output (batch, 12, 2048); observed samples copied through exactly",
    "dependencies": "torch 2.11.0; src/models/l2g.py; src/eval/generate_d1.py (inference_mode, eval mode required)",
-   "provenance": "trained on PTB-XL role A_fit (folds 1-8), early stopping on C_dev; 50 epochs",
+   "provenance": "trained on PTB-XL role A_fit (folds 1-8) for 50 epochs; training stopped at the 50-epoch cap (the C_dev early-stopping rule never fired; selection loss still falling); checkpoint selected on C_dev",
    "load_verification": {
     "status": "LOADED",
     "type": "ECGen",
