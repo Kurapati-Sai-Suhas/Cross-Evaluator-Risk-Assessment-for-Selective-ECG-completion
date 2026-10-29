@@ -41,6 +41,14 @@ def make_handler(service, log=None):
         def _error(self, code, err, message):
             self._send(code, {"error": {"code": err, "message": message}, "released": False})
 
+        def _discard_body(self):                          # before an early reply: closing with unread data sends a reset
+            try:                                          # that can destroy the reply before the client reads it
+                n = int(self.headers.get("Content-Length", "0"))
+            except ValueError:
+                return
+            if 0 < n <= MAX_BODY:
+                self.rfile.read(n)                        # read and dropped; never parsed, kept or logged
+
         def do_GET(self):
             if self.path == "/api/health":
                 self._send(200, {"status": "ok", "assets_verified": service.integrity.get("ok")})
@@ -51,8 +59,10 @@ def make_handler(service, log=None):
 
         def do_POST(self):
             if self.path != "/api/infer":
+                self._discard_body()
                 return self._error(404, "NOT_FOUND", "unknown endpoint")
             if not self.headers.get("Content-Type", "").lower().startswith("application/json"):
+                self._discard_body()
                 return self._error(415, "UNSUPPORTED_MEDIA_TYPE", "send the request as application/json")
             try:
                 n = int(self.headers.get("Content-Length", "0"))

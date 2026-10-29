@@ -192,6 +192,15 @@ def test_api_infer_and_error_codes(api):
     assert logs and all("0.123456" not in line and "secret" not in line for line in logs)   # bodies are never logged
 
 
+def test_early_error_replies_survive_an_unread_body(api):
+    # A 404/415 reply comes before the body is parsed. If the server closed the socket with the body still unread, the OS
+    # would send a reset that can destroy the reply (WinError 10053 on Windows), so the reply must arrive every time.
+    port, _ = api
+    for _ in range(100):
+        assert call(port, "POST", "/api/infer", b"I\n0.1\n", ctype="text/csv")[0] == 415
+        assert call(port, "POST", "/api/other", {"csv": "I\n0.1\n"})[0] == 404
+
+
 def test_server_binds_to_the_local_machine_only():
     with pytest.raises(SystemExit):
         server.make_server(FakeService(), host="0.0.0.0", port=0)
