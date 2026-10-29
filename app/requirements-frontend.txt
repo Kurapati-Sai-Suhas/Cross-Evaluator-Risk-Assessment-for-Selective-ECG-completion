@@ -8,3 +8,10 @@ numpy==2.4.4
 pandas==3.0.2
 matplotlib==3.10.9
 pytest==9.1.1
+# Web-server stack pinned to the verified environment (2026-10-29): with the newer starlette 1.10.0 / uvicorn 0.54.0 that a
+# fresh install pulled in, every plot image returned HTTP 500 ("Expected ASGI message 'http.response.start'").
+starlette==1.3.1
+uvicorn==0.49.0
+httptools==0.8.0
+anyio==4.13.0
+websockets==15.0.1
